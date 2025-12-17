@@ -8,6 +8,7 @@ public class Chunk {
 
     private final Integer index;
     private final Instant uploadedAt;
+    private Boolean writePending;
 
     private final Optional<InputStream> writableStream;
 
@@ -31,6 +32,19 @@ public class Chunk {
         return new Chunk(index, uploadedAt, writableStream);
     }
 
+    public Chunk writeContent(final ChunkStreamWriter writer) {
+
+        writableStream
+                .ifPresentOrElse(
+                        writer::write,
+                        () -> {
+                            throw new IllegalStateException("No writable stream available for this chunk.");
+                        });
+
+        this.writePending = false;
+        return this;
+    }
+
     public Integer getIndex() {
         return index;
     }
@@ -39,6 +53,12 @@ public class Chunk {
         return uploadedAt;
     }
 
+    public Boolean isWritePending() {
+        return writePending;
+    }
+
+    // TODO find a better way to handle streams inside domain
+    // without exposing them directly
     public Optional<InputStream> getWritableStream() {
         return writableStream;
     }
