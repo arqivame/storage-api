@@ -4,11 +4,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 
 import com.arqivame.storage.domain.Entity;
-import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class UploadSession extends Entity<UploadSessionID> {
@@ -23,8 +21,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Instant createdAt,
             final Duration maxIdleTime,
             final Integer totalChunks,
-            final Set<Chunk> uploadedChunks,
-            final Queue<Event<?>> events) {
+            final Set<Chunk> uploadedChunks) {
         super(id);
         this.createdAt = createdAt;
         this.maxIdleTime = maxIdleTime;
@@ -38,8 +35,21 @@ public class UploadSession extends Entity<UploadSessionID> {
                 Instant.now(),
                 maxIdleTime,
                 totalChunks,
-                Set.of(),
-                new java.util.LinkedList<>());
+                Set.of());
+    }
+
+    public static UploadSession with(
+            final UploadSessionID id,
+            final Instant createdAt,
+            final Duration maxIdleTime,
+            final Integer totalChunks,
+            final Set<Chunk> uploadedChunks) {
+        return new UploadSession(
+                id,
+                createdAt,
+                maxIdleTime,
+                totalChunks,
+                uploadedChunks);
     }
 
     @Override
@@ -72,6 +82,10 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Duration getMaxIdleTime() {
+        return maxIdleTime;
     }
 
     public Integer getTotalChunks() {

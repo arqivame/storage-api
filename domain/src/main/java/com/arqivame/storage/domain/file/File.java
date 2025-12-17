@@ -1,6 +1,7 @@
 package com.arqivame.storage.domain.file;
 
 import java.time.Duration;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
@@ -13,7 +14,6 @@ import com.arqivame.storage.domain.validation.ValidationHandler;
 public class File extends AggregateRoot<FileID> implements EventSource {
 
     private final Checksum checksum;
-
     private Optional<UploadSession> uploadSession;
 
     private final Queue<Event<?>> events;
@@ -28,6 +28,18 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         this.uploadSession = uploadSession;
 
         this.events = Objects.isNull(events) ? new java.util.LinkedList<>() : new java.util.LinkedList<>(events);
+    }
+
+    public static File with(
+            final FileID id,
+            final Checksum checksum,
+            final Optional<UploadSession> uploadSession,
+            final Queue<Event<?>> events) {
+        return new File(
+                id,
+                checksum,
+                uploadSession,
+                events);
     }
 
     @Override
@@ -85,6 +97,14 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public Checksum getChecksum() {
         return checksum;
+    }
+
+    public Optional<UploadSession> getUploadSession() {
+        return uploadSession;
+    }
+
+    public Queue<Event<?>> getEvents() {
+        return new LinkedList<>(events);
     }
 
 }

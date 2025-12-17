@@ -10,6 +10,9 @@ import com.arqivame.storage.domain.file.UploadSession;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
@@ -26,19 +29,25 @@ public class ChunkJpaEntity {
     @Transient
     private InputStream writableStream;
 
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", insertable = false, updatable = false)
+    private UploadSessionJpaEntity session;
+
     private ChunkJpaEntity(
             final ChunkJpaID id,
             final Instant uploadedAt,
-            final InputStream writableStream) {
+            final InputStream writableStream,
+            final UploadSessionJpaEntity session) {
         this.id = id;
         this.uploadedAt = uploadedAt;
         this.writableStream = writableStream;
+        this.session = session;
     }
 
     public static ChunkJpaEntity fromDomain(
-            final File file,
+            final Chunk chunk,
             final UploadSession session,
-            final Chunk chunk) {
+            final File file) {
 
         return new ChunkJpaEntity(
                 ChunkJpaID.from(
@@ -46,8 +55,8 @@ public class ChunkJpaEntity {
                         session.getId().getValue(),
                         chunk.getIndex()),
                 chunk.getUploadedAt(),
-                chunk.getWritableStream().orElse(null));
-
+                chunk.getWritableStream().orElse(null),
+                UploadSessionJpaEntity.fromDomain(file, session));
     }
 
     public Chunk toDomain() {
@@ -61,24 +70,16 @@ public class ChunkJpaEntity {
         return id;
     }
 
-    public void setId(ChunkJpaID id) {
-        this.id = id;
-    }
-
     public Instant getUploadedAt() {
         return uploadedAt;
-    }
-
-    public void setUploadedAt(Instant uploadedAt) {
-        this.uploadedAt = uploadedAt;
     }
 
     public InputStream getWritableStream() {
         return writableStream;
     }
 
-    public void setWritableStream(InputStream writableStream) {
-        this.writableStream = writableStream;
+    public UploadSessionJpaEntity getSession() {
+        return session;
     }
 
     @Override
