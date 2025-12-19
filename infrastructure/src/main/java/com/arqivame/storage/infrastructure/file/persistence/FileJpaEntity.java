@@ -48,11 +48,13 @@ public class FileJpaEntity {
     }
 
     public File toDomain(final Optional<UploadSession> uploadSession) {
-        return File.with(
-                FileID.of(id),
-                Checksum.with(checksumValue, checksumAlgorithm),
-                uploadSession,
-                events);
+        return null;
+        // return File.with(
+        //         FileID.of(id),
+        //         null,
+        //         // Checksum.with(checksumValue, checksumAlgorithm),
+        //         uploadSession,
+        //         events);
     }
 
     public static FileJpaEntity fromDomain(final File file) {

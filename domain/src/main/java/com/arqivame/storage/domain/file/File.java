@@ -14,6 +14,7 @@ import com.arqivame.storage.domain.validation.ValidationHandler;
 public class File extends AggregateRoot<FileID> implements EventSource {
 
     private final Checksum checksum;
+    private final Long size;
     private Optional<UploadSession> uploadSession;
 
     private final Queue<Event<?>> events;
@@ -21,23 +22,39 @@ public class File extends AggregateRoot<FileID> implements EventSource {
     private File(
             final FileID id,
             final Checksum checksum,
+            final Long size,
             final Optional<UploadSession> uploadSession,
             final Queue<Event<?>> events) {
         super(id);
         this.checksum = checksum;
+        this.size = size;
         this.uploadSession = uploadSession;
 
         this.events = Objects.isNull(events) ? new java.util.LinkedList<>() : new java.util.LinkedList<>(events);
     }
 
+    public static File create(
+            final FileID id,
+            final Long size,
+            final Checksum checksum) {
+        return new File(
+                id,
+                checksum,
+                size,
+                Optional.empty(),
+                new LinkedList<>());
+    }
+
     public static File with(
             final FileID id,
             final Checksum checksum,
+            final Long size,
             final Optional<UploadSession> uploadSession,
             final Queue<Event<?>> events) {
         return new File(
                 id,
                 checksum,
+                size,
                 uploadSession,
                 events);
     }
@@ -47,6 +64,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
+    // public File
+
     @Override
     public Optional<Event<?>> nextEvent() {
         return Optional.ofNullable(this.events.poll());
@@ -55,7 +74,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
     public File appendChunk(final Chunk chunk) {
 
         this.uploadSession.ifPresentOrElse((session) -> {
-            session.addCompletedChunk(chunk);
+            session.addChunk(chunk);
         }, () -> {
             throw new RuntimeException("No open upload session to append chunk");
         });
@@ -63,10 +82,10 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return this;
     }
 
-    public Boolean hasOpenUploadSession() {
+    // public Boolean hasOpenUploadSession() {
 
-        return uploadSession.filter(session -> !session.isIdleTimeExceeded()).isPresent();
-    }
+    //     return uploadSession.filter(session -> !session.isIdleTimeExceeded()).isPresent();
+    // }
 
     public UploadSession openUploadSession(final Integer totalChunks, final Duration maxIdleTime) {
 
@@ -97,6 +116,10 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public Checksum getChecksum() {
         return checksum;
+    }
+
+    public Long getSize() {
+        return size;
     }
 
     public Optional<UploadSession> getUploadSession() {

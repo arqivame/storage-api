@@ -2,6 +2,9 @@ server:
   port: 8080
 
 spring:
+  servlet:
+      multipart:
+        enabled: false
   security:
     user:
       name: admin

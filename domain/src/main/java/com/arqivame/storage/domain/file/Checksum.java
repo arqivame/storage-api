@@ -2,7 +2,7 @@ package com.arqivame.storage.domain.file;
 
 public record Checksum(String value, Algorithm algorithm) {
 
-    public static Checksum with(final String value, final Algorithm algorithm) {
+    public static Checksum from(final String value, final Algorithm algorithm) {
         return new Checksum(value, algorithm);
     }
 

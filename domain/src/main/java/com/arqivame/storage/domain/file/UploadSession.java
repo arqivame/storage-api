@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.file.service.UploadSessionChunksWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class UploadSession extends Entity<UploadSessionID> {
@@ -58,26 +59,29 @@ public class UploadSession extends Entity<UploadSessionID> {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
-    public UploadSession addCompletedChunk(final Chunk chunk) {
+    public UploadSession addChunk(final Chunk chunk) {
+
+        if (isIdleTimeExceeded())
+            throw new RuntimeException("Upload session idle time exceeded");
+
         uploadedChunks.add(chunk);
+        return this;
+    }
+
+    public UploadSession writePendingChunks(final UploadSessionChunksWriter chunkStreamWriter) {
+
+        final Boolean hasWritableChunks = uploadedChunks
+                .stream()
+                .anyMatch(chunk -> chunk.getWritableStream().isPresent());
+
+        if (hasWritableChunks)
+            chunkStreamWriter.write(this.getId(), this.uploadedChunks);
+
         return this;
     }
 
     public Boolean isComplete() {
         return this.uploadedChunks.size() >= this.totalChunks;
-    }
-
-    public Boolean isIdleTimeExceeded() {
-        final Instant now = Instant.now();
-
-        final Instant lastActivity = this.uploadedChunks.stream()
-                .map(Chunk::getUploadedAt)
-                .max(Instant::compareTo)
-                .orElse(this.createdAt);
-
-        final Duration idleTime = Duration.between(lastActivity, now);
-
-        return idleTime.compareTo(maxIdleTime) > 0;
     }
 
     public Instant getCreatedAt() {
@@ -94,6 +98,19 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public Set<Chunk> getUploadedChunks() {
         return Set.copyOf(uploadedChunks);
+    }
+
+    private Boolean isIdleTimeExceeded() {
+        final Instant now = Instant.now();
+
+        final Instant lastActivity = this.uploadedChunks.stream()
+                .map(Chunk::getUploadedAt)
+                .max(Instant::compareTo)
+                .orElse(this.createdAt);
+
+        final Duration idleTime = Duration.between(lastActivity, now);
+
+        return idleTime.compareTo(maxIdleTime) > 0;
     }
 
 }
