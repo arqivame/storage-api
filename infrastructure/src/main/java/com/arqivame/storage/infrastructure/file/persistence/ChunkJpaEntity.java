@@ -39,7 +39,7 @@ public class ChunkJpaEntity {
     @Column(name = "status", nullable = false)
     private ChunkStatus status;
 
-    @Column(name = "written_at", nullable = false)
+    @Column(name = "written_at")
     private Instant writtenAt;
 
     @Transient

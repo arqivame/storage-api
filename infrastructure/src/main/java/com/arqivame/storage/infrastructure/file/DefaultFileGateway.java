@@ -52,7 +52,7 @@ public class DefaultFileGateway implements FileGateway {
 
         file
                 .getUploadSession()
-                .ifPresent(session -> saveUploadSession(file, session));
+                .ifPresent(session -> saveChunks(file, saveUploadSession(file, session)));
 
         return file;
     }
@@ -74,7 +74,24 @@ public class DefaultFileGateway implements FileGateway {
 
         return uploadSessionJpaRepository
                 .save(Objects.requireNonNull(UploadSessionJpaEntity.fromDomain(file, uploadSession)))
-                .toDomain(findAllSessionChunks(uploadSession.getId()));
+                .toDomain(uploadSession.getChunks());
+
+    }
+
+    private Set<Chunk> saveChunks(final File file, final UploadSession uploadSession) {
+
+        if (uploadSession.getChunks().isEmpty())
+            return Set.of();
+
+        final Set<ChunkJpaEntity> chunksJpa = uploadSession
+                .getChunks()
+                .stream()
+                .map(chunk -> ChunkJpaEntity.fromDomain(chunk, uploadSession, file))
+                .collect(Collectors.toSet());
+
+        chunkJpaRepository.saveAll(Objects.requireNonNull(chunksJpa));
+
+        return uploadSession.getChunks();
 
     }
 
