@@ -1,5 +1,7 @@
 package com.arqivame.storage.application.file.session.create;
 
-public record CreateUploadSessionOutput() {
+import java.util.UUID;
+
+public record CreateUploadSessionOutput(UUID fileId, UUID uploadSessionId) {
 
 }

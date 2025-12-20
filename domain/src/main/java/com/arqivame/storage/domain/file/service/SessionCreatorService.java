@@ -3,13 +3,14 @@ package com.arqivame.storage.domain.file.service;
 import java.time.Duration;
 
 import com.arqivame.storage.domain.file.File;
+import com.arqivame.storage.domain.file.UploadSessionID;
 
 public final class SessionCreatorService {
 
     private SessionCreatorService() {
     }
 
-    public static File createSession(
+    public static UploadSessionID createSession(
             final File file,
             final Long totalChunks,
             final Duration maxIdleTime,
@@ -20,7 +21,7 @@ public final class SessionCreatorService {
                 totalChunks,
                 maxIdleTime,
                 maxBitsPerSecondTransferRatePerChunk,
-                maxChunksAtSameTime);
+                maxChunksAtSameTime).getId();
 
     }
 

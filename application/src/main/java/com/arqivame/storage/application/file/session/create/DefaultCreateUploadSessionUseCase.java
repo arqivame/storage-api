@@ -3,21 +3,27 @@ package com.arqivame.storage.application.file.session.create;
 import java.time.Duration;
 import java.util.Objects;
 
+import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
+import com.arqivame.storage.domain.file.UploadSessionID;
 import com.arqivame.storage.domain.file.service.ChunkCalculatorService;
 import com.arqivame.storage.domain.file.service.SessionCreatorService;
 
 public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCase {
 
+    private final EventDispatcher eventDispatcher;
+
     private final Long maxAllowedChunkSize;
     private final FileGateway fileGateway;
 
     public DefaultCreateUploadSessionUseCase(
+            final EventDispatcher eventDispatcher,
             final Long maxAllowedChunkSize,
             final FileGateway fileGateway) {
+        this.eventDispatcher = Objects.requireNonNull(eventDispatcher);
         this.maxAllowedChunkSize = Objects.requireNonNull(maxAllowedChunkSize);
         this.fileGateway = Objects.requireNonNull(fileGateway);
     }
@@ -41,16 +47,16 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
         chunkCalculationResult.chunkSize();
         chunkCalculationResult.lastChunkSize();
 
-        SessionCreatorService.createSession(
+        final UploadSessionID sessionId = SessionCreatorService.createSession(
                 file,
                 chunkCalculationResult.totalChunks(),
                 idleTimeout,
                 fileSize,
                 maxChunksAtSameTime);
 
-        fileGateway.save(file);
+        eventDispatcher.notify(fileGateway.save(file));
 
-        return null;
+        return new CreateUploadSessionOutput(file.getId().getValue(), sessionId.getValue());
 
     }
 
