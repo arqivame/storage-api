@@ -2,20 +2,35 @@ package com.arqivame.storage.infrastructure.api.controller;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.UUID;
 
 import org.apache.commons.io.input.ThrottledInputStream;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
+import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
+import com.arqivame.storage.domain.file.Checksum;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 public class TestController {
+
+    // @PostMapping()
+
+    private final CreateUploadSessionUseCase createUploadSessionUseCase;
+
+    public TestController(CreateUploadSessionUseCase createUploadSessionUseCase) {
+        this.createUploadSessionUseCase = createUploadSessionUseCase;
+    }
 
     @PutMapping(value = "/uploads/{id}/parts/{n}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> uploadPart(
@@ -48,6 +63,23 @@ public class TestController {
         } catch (IOException e) {
             return ResponseEntity.status(500).build();
         }
+    }
+
+    @PostMapping(path = "{fileId}/sessions", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<Object> createUploadSession(final UUID fileId, final HttpServletRequest request) {
+
+        final var input = new CreateUploadSessionInput(
+                fileId,
+                null,
+                Duration.ofHours(1),
+                1,
+                "123",
+                Checksum.Algorithm.MD5);
+
+        createUploadSessionUseCase.execute(input);
+
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'createUploadSession'");
     }
 
 }

@@ -93,7 +93,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final Long chunkSize,
             final Long lastChunkSize,
             final Duration maxIdleTime,
-            final Long maxBitsPerSecondTransferRatePerChunk,
+            final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
         uploadSession.ifPresent((u) -> {
@@ -102,11 +102,12 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         });
 
         final UploadSession session = UploadSession.create(
+                this,
                 totalChunks,
                 chunkSize,
                 lastChunkSize,
                 maxIdleTime,
-                maxBitsPerSecondTransferRatePerChunk,
+                maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime);
 
         uploadSession = Optional.of(session);

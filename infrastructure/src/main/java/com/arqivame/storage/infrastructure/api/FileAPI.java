@@ -1,8 +1,11 @@
 package com.arqivame.storage.infrastructure.api;
 
+import java.util.UUID;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,5 +24,8 @@ public interface FileAPI {
     ResponseEntity<Void> uploadChunk(
             @RequestParam("chunk") MultipartFile chunk,
             JwtAuthenticationToken authentication);
+
+    @PostMapping("{fileId}/sessions")
+    ResponseEntity<Object> createUploadSession(@PathVariable("fileId") UUID fileId);
 
 }

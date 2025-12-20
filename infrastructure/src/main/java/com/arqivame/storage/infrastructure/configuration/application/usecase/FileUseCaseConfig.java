@@ -3,8 +3,8 @@ package com.arqivame.storage.infrastructure.configuration.application.usecase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.arqivame.storage.application.file.session.chunk.upload.DefaultUploadSessionChunkUseCase;
-import com.arqivame.storage.application.file.session.chunk.upload.UploadSessionChunkUseCase;
+import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
+import com.arqivame.storage.application.file.session.create.DefaultCreateUploadSessionUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
 
@@ -23,8 +23,11 @@ public class FileUseCaseConfig {
     }
 
     @Bean
-    UploadSessionChunkUseCase uploadSessionChunkUseCase() {
-        return new DefaultUploadSessionChunkUseCase(fileGateway, eventDispatcher);
+    CreateUploadSessionUseCase createUploadSessionUseCase() {
+        return new DefaultCreateUploadSessionUseCase(
+                eventDispatcher,
+                1024L * 1024L * 10L, // 10 MB
+                fileGateway);
     }
 
 }

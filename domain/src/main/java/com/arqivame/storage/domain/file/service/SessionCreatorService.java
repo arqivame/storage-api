@@ -16,7 +16,7 @@ public final class SessionCreatorService {
             final Long chunkSize,
             final Long lastChunkSize,
             final Duration maxIdleTime,
-            final Long maxBitsPerSecondTransferRatePerChunk,
+            final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
         return file.openUploadSession(
@@ -24,7 +24,7 @@ public final class SessionCreatorService {
                 chunkSize,
                 lastChunkSize,
                 maxIdleTime,
-                maxBitsPerSecondTransferRatePerChunk,
+                maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime).getId();
 
     }

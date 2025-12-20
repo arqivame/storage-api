@@ -1,16 +1,20 @@
 package com.arqivame.storage.infrastructure.file.persistence;
 
-import java.io.InputStream;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.arqivame.storage.domain.file.Chunk;
 import com.arqivame.storage.domain.file.ChunkID;
+import com.arqivame.storage.domain.file.ChunkStatus;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
+import com.arqivame.storage.domain.file.service.StorageService;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -26,13 +30,20 @@ public class ChunkJpaEntity {
     private UUID id;
 
     @Column(name = "chunk_index", nullable = false)
-    private Integer index;
+    private Long index;
 
-    @Column(name = "uploaded_at", nullable = false)
-    private Instant uploadedAt;
+    @Column(name = "chunk_size", nullable = false)
+    private Long size;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private ChunkStatus status;
+
+    @Column(name = "written_at", nullable = false)
+    private Instant writtenAt;
 
     @Transient
-    private InputStream writableStream;
+    private Optional<StorageService> writer;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", insertable = false, updatable = false)
@@ -40,12 +51,18 @@ public class ChunkJpaEntity {
 
     private ChunkJpaEntity(
             final UUID id,
-            final Instant uploadedAt,
-            final InputStream writableStream,
+            final Long index,
+            final Long size,
+            final ChunkStatus status,
+            final Instant writtenAt,
+            final Optional<StorageService> writer,
             final UploadSessionJpaEntity session) {
         this.id = id;
-        this.uploadedAt = uploadedAt;
-        this.writableStream = writableStream;
+        this.index = index;
+        this.size = size;
+        this.status = status;
+        this.writtenAt = writtenAt;
+        this.writer = writer;
         this.session = session;
     }
 
@@ -53,22 +70,24 @@ public class ChunkJpaEntity {
             final Chunk chunk,
             final UploadSession session,
             final File file) {
-
         return new ChunkJpaEntity(
                 chunk.getId().getValue(),
+                chunk.getIndex(),
+                chunk.getSize(),
+                chunk.getStatus(),
                 chunk.getWrittenAt(),
-                chunk.getWritableStream().orElse(null),
+                chunk.getWriter(),
                 UploadSessionJpaEntity.fromDomain(file, session));
     }
 
     public Chunk toDomain() {
-
-        return null;
-        // return Chunk.from(
-        //         ChunkID.of(this.id),
-        //         this.index,
-        //         this.uploadedAt,
-        //         this.writableStream);
+        return Chunk.with(
+                ChunkID.of(id),
+                index,
+                size,
+                status,
+                writtenAt,
+                writer.orElse(null));
     }
 
     public UUID getId() {
@@ -79,28 +98,44 @@ public class ChunkJpaEntity {
         this.id = id;
     }
 
-    public Integer getIndex() {
+    public Long getIndex() {
         return index;
     }
 
-    public void setIndex(Integer index) {
+    public void setIndex(Long index) {
         this.index = index;
     }
 
-    public Instant getUploadedAt() {
-        return uploadedAt;
+    public Long getSize() {
+        return size;
     }
 
-    public void setUploadedAt(Instant uploadedAt) {
-        this.uploadedAt = uploadedAt;
+    public void setSize(Long size) {
+        this.size = size;
     }
 
-    public InputStream getWritableStream() {
-        return writableStream;
+    public ChunkStatus getStatus() {
+        return status;
     }
 
-    public void setWritableStream(InputStream writableStream) {
-        this.writableStream = writableStream;
+    public void setStatus(ChunkStatus status) {
+        this.status = status;
+    }
+
+    public Instant getWrittenAt() {
+        return writtenAt;
+    }
+
+    public void setWrittenAt(Instant writtenAt) {
+        this.writtenAt = writtenAt;
+    }
+
+    public Optional<StorageService> getWriter() {
+        return writer;
+    }
+
+    public void setWriter(Optional<StorageService> writer) {
+        this.writer = writer;
     }
 
     public UploadSessionJpaEntity getSession() {
@@ -140,8 +175,9 @@ public class ChunkJpaEntity {
     public String toString() {
         return "ChunkJpaEntity [id=" + id
                 + ", index=" + index
-                + ", uploadedAt=" + uploadedAt
-                + ", writableStream=" + writableStream
+                + ", size=" + size
+                + ", status=" + status
+                + ", writtenAt=" + writtenAt
                 + ", session=" + session
                 + "]";
     }

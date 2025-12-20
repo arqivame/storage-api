@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import com.arqivame.storage.domain.file.Chunk;
 import com.arqivame.storage.domain.file.File;
+import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSession;
 import com.arqivame.storage.domain.file.UploadSessionID;
 
@@ -27,24 +28,34 @@ public class UploadSessionJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    @Column(name = "max_idle_time", nullable = false)
+    @Column(name = "max_idle_time", updatable = false, nullable = false)
     private Duration maxIdleTime;
 
+    @Column(name = "max_bytes_per_second_transfer_rate_per_chunk", updatable = false, nullable = false)
+    private Long maxBytesPerSecondTransferRatePerChunk;
+
+    @Column(name = "max_chunks_at_same_time", updatable = false, nullable = false)
+    private Integer maxChunksAtSameTime;
+
     @Column(name = "total_chunks", nullable = false)
-    private Integer totalChunks;
+    private Long totalChunks;
 
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     private FileJpaEntity file;
 
-    private UploadSessionJpaEntity(
+    public UploadSessionJpaEntity(
             final UUID id,
             final Instant createdAt,
             final Duration maxIdleTime,
-            final Integer totalChunks,
+            final Long maxBytesPerSecondTransferRatePerChunk,
+            final Integer maxChunksAtSameTime,
+            final Long totalChunks,
             final FileJpaEntity file) {
         this.id = id;
         this.createdAt = createdAt;
         this.maxIdleTime = maxIdleTime;
+        this.maxBytesPerSecondTransferRatePerChunk = maxBytesPerSecondTransferRatePerChunk;
+        this.maxChunksAtSameTime = maxChunksAtSameTime;
         this.totalChunks = totalChunks;
         this.file = file;
     }
@@ -52,9 +63,12 @@ public class UploadSessionJpaEntity {
     public UploadSession toDomain(final Set<Chunk> uploadedChunks) {
         return UploadSession.with(
                 UploadSessionID.of(this.id),
-                this.createdAt,
-                this.maxIdleTime,
-                this.totalChunks,
+                FileID.of(file.getId()),
+                createdAt,
+                maxIdleTime,
+                maxBytesPerSecondTransferRatePerChunk,
+                maxChunksAtSameTime,
+                totalChunks,
                 uploadedChunks);
     }
 
@@ -63,6 +77,8 @@ public class UploadSessionJpaEntity {
                 session.getId().getValue(),
                 session.getCreatedAt(),
                 session.getMaxIdleTime(),
+                session.getMaxBytesPerSecondTransferRatePerChunk(),
+                session.getMaxChunksAtSameTime(),
                 session.getTotalChunks(),
                 FileJpaEntity.fromDomain(file));
     }
@@ -91,11 +107,27 @@ public class UploadSessionJpaEntity {
         this.maxIdleTime = maxIdleTime;
     }
 
-    public Integer getTotalChunks() {
+    public Long getMaxBytesPerSecondTransferRatePerChunk() {
+        return maxBytesPerSecondTransferRatePerChunk;
+    }
+
+    public void setMaxBytesPerSecondTransferRatePerChunk(Long maxBytesPerSecondTransferRatePerChunk) {
+        this.maxBytesPerSecondTransferRatePerChunk = maxBytesPerSecondTransferRatePerChunk;
+    }
+
+    public Integer getMaxChunksAtSameTime() {
+        return maxChunksAtSameTime;
+    }
+
+    public void setMaxChunksAtSameTime(Integer maxChunksAtSameTime) {
+        this.maxChunksAtSameTime = maxChunksAtSameTime;
+    }
+
+    public Long getTotalChunks() {
         return totalChunks;
     }
 
-    public void setTotalChunks(Integer totalChunks) {
+    public void setTotalChunks(Long totalChunks) {
         this.totalChunks = totalChunks;
     }
 
@@ -137,8 +169,11 @@ public class UploadSessionJpaEntity {
         return "UploadSessionJpaEntity [id=" + id
                 + ", createdAt=" + createdAt
                 + ", maxIdleTime=" + maxIdleTime
+                + ", maxBytesPerSecondTransferRatePerChunk=" + maxBytesPerSecondTransferRatePerChunk
+                + ", maxChunksAtSameTime=" + maxChunksAtSameTime
                 + ", totalChunks=" + totalChunks
                 + ", file=" + file
                 + "]";
     }
+
 }

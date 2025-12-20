@@ -10,41 +10,45 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import com.arqivame.storage.domain.Entity;
-import com.arqivame.storage.domain.file.service.InputStreamWriter;
+import com.arqivame.storage.domain.file.service.StorageService;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class UploadSession extends Entity<UploadSessionID> {
 
+    private final FileID file;
     private final Instant createdAt;
     private final Duration maxIdleTime;
-    private final Long maxBitsPerSecondTransferRatePerChunk;
+    private final Long maxBytesPerSecondTransferRatePerChunk;
     private final Integer maxChunksAtSameTime;
     private final Long totalChunks;
     private final Set<Chunk> chunks;
 
     private UploadSession(
             final UploadSessionID id,
+            final FileID file,
             final Instant createdAt,
             final Duration maxIdleTime,
-            final Long maxBitsPerSecondTransferRatePerChunk,
+            final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime,
             final Long totalChunks,
             final Set<Chunk> chunks) {
         super(id);
+        this.file = Objects.requireNonNull(file);
         this.createdAt = createdAt;
         this.maxIdleTime = maxIdleTime;
-        this.maxBitsPerSecondTransferRatePerChunk = maxBitsPerSecondTransferRatePerChunk;
+        this.maxBytesPerSecondTransferRatePerChunk = maxBytesPerSecondTransferRatePerChunk;
         this.maxChunksAtSameTime = maxChunksAtSameTime;
         this.totalChunks = totalChunks;
         this.chunks = Objects.isNull(chunks) ? new HashSet<>() : new HashSet<>(chunks);
     }
 
     public static UploadSession create(
+            final File file,
             final Long totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
             final Duration maxIdleTime,
-            final Long maxBitsPerSecondTransferRatePerChunk,
+            final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
         if (totalChunks <= 0)
@@ -53,8 +57,8 @@ public class UploadSession extends Entity<UploadSessionID> {
         if (maxIdleTime.isNegative() || maxIdleTime.isZero())
             throw new IllegalArgumentException("Max idle time must be greater than zero");
 
-        if (maxBitsPerSecondTransferRatePerChunk <= 0)
-            throw new IllegalArgumentException("Max bits per second transfer rate per chunk must be greater than zero");
+        if (maxBytesPerSecondTransferRatePerChunk <= 0)
+            throw new IllegalArgumentException("Max bytes per second transfer rate per chunk must be greater than zero");
 
         if (maxChunksAtSameTime <= 0)
             throw new IllegalArgumentException("Max chunks at same time must be greater than zero");
@@ -68,9 +72,10 @@ public class UploadSession extends Entity<UploadSessionID> {
 
         return new UploadSession(
                 UploadSessionID.unique(),
+                file.getId(),
                 Instant.now(),
                 maxIdleTime,
-                maxBitsPerSecondTransferRatePerChunk,
+                maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime,
                 totalChunks,
                 chunks);
@@ -78,17 +83,19 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public static UploadSession with(
             final UploadSessionID id,
+            final FileID file,
             final Instant createdAt,
             final Duration maxIdleTime,
-            final Long maxBitsPerSecondTransferRatePerChunk,
+            final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime,
             final Long totalChunks,
             final Set<Chunk> chunks) {
         return new UploadSession(
                 id,
+                file,
                 createdAt,
                 maxIdleTime,
-                maxBitsPerSecondTransferRatePerChunk,
+                maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime,
                 totalChunks,
                 chunks);
@@ -109,35 +116,37 @@ public class UploadSession extends Entity<UploadSessionID> {
         return this;
     }
 
-    public UploadSession markChunkAsWriting(final Integer chunkIndex) {
+    public UploadSession initiateChunkWriting(final Long chunkIndex, final StorageService writer) {
 
-        final Long writingChunksCount = chunks.stream()
-                .filter(chunk -> chunk.status().equals(ChunkStatus.WRITING))
+        final Long writingChunksCount = chunks
+                .stream()
+                .filter(chunk -> chunk.getStatus().equals(ChunkStatus.WRITING))
                 .count();
 
         if (writingChunksCount >= maxChunksAtSameTime)
             throw new RuntimeException("Maximum number of chunks being written reached: " + maxChunksAtSameTime);
 
-        chunks.stream()
-                .filter(chunk -> chunk.index().equals(chunkIndex))
+        chunks
+                .stream()
+                .filter(chunk -> chunk.getIndex().equals(chunkIndex))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Chunk not found: " + chunkIndex))
-                .markAsWriting();
+                .assignWriter(writer);
 
         return this;
     }
 
     public UploadSession writeChunk(
-            final Integer chunkIndex,
-            final InputStream inputStream,
-            final InputStreamWriter writer) {
+            final Long chunkIndex,
+            final Checksum checksumValue,
+            final InputStream inputStream) {
 
-        chunks.stream()
-                .filter(chunk -> chunk.index().equals(chunkIndex))
+        chunks
+                .stream()
+                .filter(chunk -> chunk.getIndex().equals(chunkIndex))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Chunk not found: " + chunkIndex))
-                .assignWriter(writer)
-                .write(inputStream, maxBitsPerSecondTransferRatePerChunk);
+                .write(this, inputStream, checksumValue, maxBytesPerSecondTransferRatePerChunk);
 
         return this;
     }
@@ -146,12 +155,24 @@ public class UploadSession extends Entity<UploadSessionID> {
         return this.chunks.size() >= this.totalChunks;
     }
 
+    public FileID getFile() {
+        return file;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
 
     public Duration getMaxIdleTime() {
         return maxIdleTime;
+    }
+
+    public Long getMaxBytesPerSecondTransferRatePerChunk() {
+        return maxBytesPerSecondTransferRatePerChunk;
+    }
+
+    public Integer getMaxChunksAtSameTime() {
+        return maxChunksAtSameTime;
     }
 
     public Long getTotalChunks() {

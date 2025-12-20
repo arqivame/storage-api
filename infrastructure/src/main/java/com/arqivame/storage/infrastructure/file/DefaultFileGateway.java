@@ -13,11 +13,11 @@ import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSession;
 import com.arqivame.storage.domain.file.UploadSessionID;
-import com.arqivame.storage.domain.file.service.UploadSessionChunksWriter;
 import com.arqivame.storage.infrastructure.file.persistence.ChunkJpaEntity;
 import com.arqivame.storage.infrastructure.file.persistence.ChunkJpaRepository;
 import com.arqivame.storage.infrastructure.file.persistence.FileJpaEntity;
 import com.arqivame.storage.infrastructure.file.persistence.FileJpaRepository;
+import com.arqivame.storage.infrastructure.file.persistence.UploadSessionJpaEntity;
 import com.arqivame.storage.infrastructure.file.persistence.UploadSessionJpaRepository;
 
 @Component
@@ -27,17 +27,13 @@ public class DefaultFileGateway implements FileGateway {
     private final UploadSessionJpaRepository uploadSessionJpaRepository;
     private final ChunkJpaRepository chunkJpaRepository;
 
-    private final UploadSessionChunksWriter chunkStreamWriter;
-
     public DefaultFileGateway(
             final FileJpaRepository fileJpaRepository,
             final UploadSessionJpaRepository uploadSessionJpaRepository,
-            final ChunkJpaRepository chunkJpaRepository,
-            final UploadSessionChunksWriter chunkStreamWriter) {
+            final ChunkJpaRepository chunkJpaRepository) {
         this.fileJpaRepository = Objects.requireNonNull(fileJpaRepository);
         this.uploadSessionJpaRepository = Objects.requireNonNull(uploadSessionJpaRepository);
         this.chunkJpaRepository = Objects.requireNonNull(chunkJpaRepository);
-        this.chunkStreamWriter = Objects.requireNonNull(chunkStreamWriter);
     }
 
     @Override
@@ -50,11 +46,15 @@ public class DefaultFileGateway implements FileGateway {
     @Override
     public File save(final File file) {
 
-        file.getUploadSession().ifPresent(session -> session.writeChunk(chunkStreamWriter));
-
-        return fileJpaRepository
+        fileJpaRepository
                 .save(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))
                 .toDomain(file.getUploadSession());
+
+        file
+                .getUploadSession()
+                .ifPresent(session -> saveUploadSession(file, session));
+
+        return file;
     }
 
     private Optional<UploadSession> findUploadSession(final FileID fileId) {
@@ -70,7 +70,11 @@ public class DefaultFileGateway implements FileGateway {
                 .collect(Collectors.toSet());
     }
 
-    private void saveUploadSession(final UploadSession uploadSession) {
+    private UploadSession saveUploadSession(final File file, final UploadSession uploadSession) {
+
+        return uploadSessionJpaRepository
+                .save(Objects.requireNonNull(UploadSessionJpaEntity.fromDomain(file, uploadSession)))
+                .toDomain(findAllSessionChunks(uploadSession.getId()));
 
     }
 

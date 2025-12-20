@@ -6,6 +6,10 @@ public record Checksum(String value, Algorithm algorithm) {
         return new Checksum(value, algorithm);
     }
 
+    public Boolean equals(final Checksum other) {
+        return this.value.equals(other.value) && this.algorithm == other.algorithm;
+    }
+
     // TODO: implementation to calculate checksum
     // public static Checksum of(final byte[] value, final Algorithm algorithm) {
     // return new Checksum(new String(value), algorithm);

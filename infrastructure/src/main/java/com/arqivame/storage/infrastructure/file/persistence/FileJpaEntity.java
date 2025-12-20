@@ -26,12 +26,15 @@ public class FileJpaEntity {
     @Id
     private UUID id;
 
-    @Column(name = "checksum_value")
+    @Column(name = "checksum_value") // updatable = false, nullable = false
     private String checksumValue;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "checksum_algorithm")
+    @Column(name = "checksum_algorithm", updatable = false) // updatable = false, nullable = false
     private Checksum.Algorithm checksumAlgorithm;
+
+    @Column(name = "size", updatable = false, nullable = false)
+    private Long size;
 
     @Transient
     private Queue<Event<?>> events;
@@ -40,21 +43,22 @@ public class FileJpaEntity {
             final UUID id,
             final String checksumValue,
             final Algorithm checksumAlgorithm,
+            final Long size,
             final Queue<Event<?>> events) {
         this.id = id;
         this.checksumValue = checksumValue;
         this.checksumAlgorithm = checksumAlgorithm;
+        this.size = size;
         this.events = events;
     }
 
     public File toDomain(final Optional<UploadSession> uploadSession) {
-        return null;
-        // return File.with(
-        //         FileID.of(id),
-        //         null,
-        //         // Checksum.with(checksumValue, checksumAlgorithm),
-        //         uploadSession,
-        //         events);
+        return File.with(
+                FileID.of(id),
+                Checksum.from(checksumValue, checksumAlgorithm),
+                size,
+                uploadSession,
+                events);
     }
 
     public static FileJpaEntity fromDomain(final File file) {
@@ -62,6 +66,7 @@ public class FileJpaEntity {
                 file.getId().getValue(),
                 file.getChecksum().value(),
                 file.getChecksum().algorithm(),
+                file.getSize(),
                 file.getEvents());
     }
 
@@ -87,6 +92,14 @@ public class FileJpaEntity {
 
     public void setChecksumAlgorithm(Checksum.Algorithm checksumAlgorithm) {
         this.checksumAlgorithm = checksumAlgorithm;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
     }
 
     public Queue<Event<?>> getEvents() {
@@ -124,10 +137,10 @@ public class FileJpaEntity {
 
     @Override
     public String toString() {
-        return "FileJpaEntity "
-                + "[id=" + id
+        return "FileJpaEntity [id=" + id
                 + ", checksumValue=" + checksumValue
                 + ", checksumAlgorithm=" + checksumAlgorithm
+                + ", size=" + size
                 + "]";
     }
 
