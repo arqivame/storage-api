@@ -127,6 +127,12 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     }
 
+    public UploadSession fetchUploadSessionById(final UploadSessionID sessionId) {
+        return uploadSession
+                .filter(session -> session.getId().equals(sessionId))
+                .orElseThrow(() -> new RuntimeException("No open upload session with ID: " + sessionId));
+    }
+
     public Checksum getChecksum() {
         return checksum;
     }
@@ -135,10 +141,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return size;
     }
 
-    public UploadSession getUploadSession(final UploadSessionID sessionId) {
-        return uploadSession
-                .filter(session -> session.getId().equals(sessionId))
-                .orElseThrow(() -> new RuntimeException("No open upload session with ID: " + sessionId));
+    public Optional<UploadSession> getUploadSession() {
+        return uploadSession;
     }
 
     public Queue<Event<?>> getEvents() {

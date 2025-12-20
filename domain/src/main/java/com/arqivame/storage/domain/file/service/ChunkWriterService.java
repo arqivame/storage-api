@@ -18,7 +18,7 @@ public final class ChunkWriterService {
             final InputStream chunkData,
             final InputStreamWriter writer) {
 
-        final UploadSession session = file.getUploadSession(sessionId);
+        final UploadSession session = file.fetchUploadSessionById(sessionId);
 
         session.markChunkAsWriting(chunkIndex);
         session.writeChunk(chunkIndex, chunkData, writer); // Maybe needs checksum here
