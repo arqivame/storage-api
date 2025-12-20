@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import com.arqivame.storage.domain.Entity;
 import com.arqivame.storage.domain.file.service.InputStreamWriter;
@@ -20,7 +21,7 @@ public class UploadSession extends Entity<UploadSessionID> {
     private final Duration maxIdleTime;
     private final Long maxBitsPerSecondTransferRatePerChunk;
     private final Integer maxChunksAtSameTime;
-    private final Integer totalChunks;
+    private final Long totalChunks;
     private final Set<Chunk> chunks;
 
     private UploadSession(
@@ -29,7 +30,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime,
-            final Integer totalChunks,
+            final Long totalChunks,
             final Set<Chunk> chunks) {
         super(id);
         this.createdAt = createdAt;
@@ -41,7 +42,7 @@ public class UploadSession extends Entity<UploadSessionID> {
     }
 
     public static UploadSession create(
-            final Integer totalChunks,
+            final Long totalChunks,
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
@@ -58,7 +59,7 @@ public class UploadSession extends Entity<UploadSessionID> {
         if (maxChunksAtSameTime <= 0)
             throw new IllegalArgumentException("Max chunks at same time must be greater than zero");
 
-        final Set<Chunk> chunks = IntStream
+        final Set<Chunk> chunks = LongStream
                 .range(0, totalChunks)
                 .mapToObj(Chunk::create)
                 .collect(Collectors.toSet());
@@ -79,7 +80,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime,
-            final Integer totalChunks,
+            final Long totalChunks,
             final Set<Chunk> chunks) {
         return new UploadSession(
                 id,
@@ -100,7 +101,7 @@ public class UploadSession extends Entity<UploadSessionID> {
     public UploadSession addChunk(final Chunk chunk) {
 
         // if (isIdleTimeExceeded())
-        //     throw new RuntimeException("Upload session idle time exceeded");
+        // throw new RuntimeException("Upload session idle time exceeded");
 
         chunks.add(chunk);
         return this;
@@ -151,7 +152,7 @@ public class UploadSession extends Entity<UploadSessionID> {
         return maxIdleTime;
     }
 
-    public Integer getTotalChunks() {
+    public Long getTotalChunks() {
         return totalChunks;
     }
 
@@ -160,17 +161,17 @@ public class UploadSession extends Entity<UploadSessionID> {
     }
 
     // private Boolean isIdleTimeExceeded() {
-    //     final Instant now = Instant.now();
+    // final Instant now = Instant.now();
 
-    //     final Instant lastActivity = this.chunks
-    //             .stream()
-    //             .map(Chunk::getWrittenAt)
-    //             .max(Instant::compareTo)
-    //             .orElse(this.createdAt);
+    // final Instant lastActivity = this.chunks
+    // .stream()
+    // .map(Chunk::getWrittenAt)
+    // .max(Instant::compareTo)
+    // .orElse(this.createdAt);
 
-    //     final Duration idleTime = Duration.between(lastActivity, now);
+    // final Duration idleTime = Duration.between(lastActivity, now);
 
-    //     return idleTime.compareTo(maxIdleTime) > 0;
+    // return idleTime.compareTo(maxIdleTime) > 0;
     // }
 
 }

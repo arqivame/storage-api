@@ -10,7 +10,7 @@ import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class Chunk extends Entity<ChunkID> {
 
-    private final Integer index;
+    private final Long index;
     private ChunkStatus status;
 
     private Instant writtedAt;
@@ -24,7 +24,7 @@ public class Chunk extends Entity<ChunkID> {
 
     private Chunk(
             final ChunkID id,
-            final Integer index,
+            final Long index,
             final ChunkStatus status,
             final Boolean isPersisted,
             final Checksum checksum,
@@ -39,7 +39,7 @@ public class Chunk extends Entity<ChunkID> {
         // this.writableStream = Optional.ofNullable(writableStream);
     }
 
-    public static Chunk create(final Integer index) {
+    public static Chunk create(final Long index) {
         return new Chunk(
                 ChunkID.unique(),
                 index,
@@ -58,7 +58,7 @@ public class Chunk extends Entity<ChunkID> {
 
     public static Chunk from(
             final ChunkID id,
-            final Integer index,
+            final Long index,
             final ChunkStatus status,
             final Boolean isPersisted,
             final Checksum checksum,
@@ -124,7 +124,7 @@ public class Chunk extends Entity<ChunkID> {
         return this;
     }
 
-    public Integer index() {
+    public Long index() {
         return index;
     }
 

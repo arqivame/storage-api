@@ -88,8 +88,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
     // !session.isIdleTimeExceeded()).isPresent();
     // }
 
-    public UploadSession openUploadSession(
-            final Integer totalChunks,
+    public File openUploadSession(
+            final Long totalChunks,
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
@@ -107,7 +107,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
         uploadSession = Optional.of(session);
 
-        return session;
+        return this;
 
     }
 
