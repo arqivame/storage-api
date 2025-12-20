@@ -13,12 +13,16 @@ public final class SessionCreatorService {
     public static UploadSessionID createSession(
             final File file,
             final Long totalChunks,
+            final Long chunkSize,
+            final Long lastChunkSize,
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
         return file.openUploadSession(
                 totalChunks,
+                chunkSize,
+                lastChunkSize,
                 maxIdleTime,
                 maxBitsPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime).getId();

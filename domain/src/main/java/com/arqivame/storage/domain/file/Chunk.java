@@ -11,10 +11,10 @@ import com.arqivame.storage.domain.validation.ValidationHandler;
 public class Chunk extends Entity<ChunkID> {
 
     private final Long index;
+    private final Long size;
     private ChunkStatus status;
 
     private Instant writtedAt;
-
     private Checksum checksum;
     private Boolean isPersisted;
 
@@ -25,6 +25,7 @@ public class Chunk extends Entity<ChunkID> {
     private Chunk(
             final ChunkID id,
             final Long index,
+            final Long size,
             final ChunkStatus status,
             final Boolean isPersisted,
             final Checksum checksum,
@@ -32,6 +33,7 @@ public class Chunk extends Entity<ChunkID> {
             final InputStream writableStream) {
         super(id);
         this.index = index;
+        this.size = size;
         this.status = status;
         this.isPersisted = isPersisted;
         this.checksum = checksum;
@@ -39,10 +41,11 @@ public class Chunk extends Entity<ChunkID> {
         // this.writableStream = Optional.ofNullable(writableStream);
     }
 
-    public static Chunk create(final Long index) {
+    public static Chunk create(final Long index, final Long size) {
         return new Chunk(
                 ChunkID.unique(),
                 index,
+                size,
                 ChunkStatus.PENDING,
                 false,
                 null,
@@ -59,6 +62,7 @@ public class Chunk extends Entity<ChunkID> {
     public static Chunk from(
             final ChunkID id,
             final Long index,
+            final Long size,
             final ChunkStatus status,
             final Boolean isPersisted,
             final Checksum checksum,
@@ -67,6 +71,7 @@ public class Chunk extends Entity<ChunkID> {
         return new Chunk(
                 id,
                 index,
+                size,
                 status,
                 isPersisted,
                 checksum,
@@ -126,6 +131,10 @@ public class Chunk extends Entity<ChunkID> {
 
     public Long index() {
         return index;
+    }
+
+    public Long getSize() {
+        return size;
     }
 
     public ChunkStatus status() {

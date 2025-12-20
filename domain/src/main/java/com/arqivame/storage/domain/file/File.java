@@ -90,6 +90,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public UploadSession openUploadSession(
             final Long totalChunks,
+            final Long chunkSize,
+            final Long lastChunkSize,
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
@@ -101,6 +103,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
         final UploadSession session = UploadSession.create(
                 totalChunks,
+                chunkSize,
+                lastChunkSize,
                 maxIdleTime,
                 maxBitsPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime);

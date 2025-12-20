@@ -43,13 +43,11 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
 
         final var chunkCalculationResult = ChunkCalculatorService.calculate(maxAllowedChunkSize, fileSize);
 
-        // chunkCalculationResult.totalChunks();
-        chunkCalculationResult.chunkSize();
-        chunkCalculationResult.lastChunkSize();
-
         final UploadSessionID sessionId = SessionCreatorService.createSession(
                 file,
                 chunkCalculationResult.totalChunks(),
+                chunkCalculationResult.chunkSize(),
+                chunkCalculationResult.lastChunkSize(),
                 idleTimeout,
                 fileSize,
                 maxChunksAtSameTime);

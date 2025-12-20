@@ -7,12 +7,10 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import com.arqivame.storage.domain.Entity;
 import com.arqivame.storage.domain.file.service.InputStreamWriter;
-import com.arqivame.storage.domain.file.service.UploadSessionChunksWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class UploadSession extends Entity<UploadSessionID> {
@@ -43,6 +41,8 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public static UploadSession create(
             final Long totalChunks,
+            final Long chunkSize,
+            final Long lastChunkSize,
             final Duration maxIdleTime,
             final Long maxBitsPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
@@ -60,9 +60,11 @@ public class UploadSession extends Entity<UploadSessionID> {
             throw new IllegalArgumentException("Max chunks at same time must be greater than zero");
 
         final Set<Chunk> chunks = LongStream
-                .range(0, totalChunks)
-                .mapToObj(Chunk::create)
-                .collect(Collectors.toSet());
+                .range(0, totalChunks - 1)
+                .mapToObj(index -> Chunk.create(index, chunkSize))
+                .collect(Collectors.toCollection(HashSet::new));
+
+        chunks.add(Chunk.create(totalChunks, lastChunkSize));
 
         return new UploadSession(
                 UploadSessionID.unique(),
