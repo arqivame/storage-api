@@ -88,14 +88,22 @@ public class File extends AggregateRoot<FileID> implements EventSource {
     // !session.isIdleTimeExceeded()).isPresent();
     // }
 
-    public UploadSession openUploadSession(final Integer totalChunks, final Duration maxIdleTime) {
+    public UploadSession openUploadSession(
+            final Integer totalChunks,
+            final Duration maxIdleTime,
+            final Long maxBitsPerSecondTransferRatePerChunk,
+            final Integer maxChunksAtSameTime) {
 
         uploadSession.ifPresent((u) -> {
             throw new RuntimeException(
                     "Session already open, please close the current session before opening a new one");
         });
 
-        final UploadSession session = UploadSession.create(totalChunks, maxIdleTime);
+        final UploadSession session = UploadSession.create(
+                totalChunks,
+                maxIdleTime,
+                maxBitsPerSecondTransferRatePerChunk,
+                maxChunksAtSameTime);
 
         uploadSession = Optional.of(session);
 

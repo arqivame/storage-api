@@ -99,8 +99,8 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public UploadSession addChunk(final Chunk chunk) {
 
-        if (isIdleTimeExceeded())
-            throw new RuntimeException("Upload session idle time exceeded");
+        // if (isIdleTimeExceeded())
+        //     throw new RuntimeException("Upload session idle time exceeded");
 
         chunks.add(chunk);
         return this;
@@ -159,17 +159,18 @@ public class UploadSession extends Entity<UploadSessionID> {
         return Set.copyOf(chunks);
     }
 
-    private Boolean isIdleTimeExceeded() {
-        final Instant now = Instant.now();
+    // private Boolean isIdleTimeExceeded() {
+    //     final Instant now = Instant.now();
 
-        final Instant lastActivity = this.chunks.stream()
-                .map(Chunk::getWrittenAt)
-                .max(Instant::compareTo)
-                .orElse(this.createdAt);
+    //     final Instant lastActivity = this.chunks
+    //             .stream()
+    //             .map(Chunk::getWrittenAt)
+    //             .max(Instant::compareTo)
+    //             .orElse(this.createdAt);
 
-        final Duration idleTime = Duration.between(lastActivity, now);
+    //     final Duration idleTime = Duration.between(lastActivity, now);
 
-        return idleTime.compareTo(maxIdleTime) > 0;
-    }
+    //     return idleTime.compareTo(maxIdleTime) > 0;
+    // }
 
 }
