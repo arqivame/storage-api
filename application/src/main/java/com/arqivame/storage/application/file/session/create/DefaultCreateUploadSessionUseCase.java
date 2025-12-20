@@ -12,13 +12,13 @@ import com.arqivame.storage.domain.file.service.SessionCreatorService;
 
 public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCase {
 
-    private final ChunkCalculatorService chunkCalculatorService;
+    private final Long maxAllowedChunkSize;
     private final FileGateway fileGateway;
 
     public DefaultCreateUploadSessionUseCase(
-            final ChunkCalculatorService chunkCalculatorService,
+            final Long maxAllowedChunkSize,
             final FileGateway fileGateway) {
-        this.chunkCalculatorService = Objects.requireNonNull(chunkCalculatorService);
+        this.maxAllowedChunkSize = Objects.requireNonNull(maxAllowedChunkSize);
         this.fileGateway = Objects.requireNonNull(fileGateway);
     }
 
@@ -35,8 +35,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
                 .findById(fileId)
                 .orElseGet(() -> createFile(fileId, fileSize, checksum));
 
-        final ChunkCalculatorService.ChunkCalculationResult chunkCalculationResult = chunkCalculatorService
-                .calculate(fileSize);
+        final var chunkCalculationResult = ChunkCalculatorService.calculate(maxAllowedChunkSize, fileSize);
 
         // chunkCalculationResult.totalChunks();
         chunkCalculationResult.chunkSize();

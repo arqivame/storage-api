@@ -2,17 +2,10 @@ package com.arqivame.storage.domain.file.service;
 
 public class ChunkCalculatorService {
 
-    private final Long maxAllowedChunkSize;
-
-    public ChunkCalculatorService(final Long maxAllowedChunkSize) {
+    public static ChunkCalculationResult calculate(final Long maxAllowedChunkSize, final Long fileSize) {
 
         if (maxAllowedChunkSize <= 0)
             throw new IllegalArgumentException("Max allowed chunk size must be greater than zero.");
-
-        this.maxAllowedChunkSize = maxAllowedChunkSize;
-    }
-
-    public ChunkCalculationResult calculate(final Long fileSize) {
 
         if (fileSize <= 0)
             throw new IllegalArgumentException("File size must be greater than zero.");
