@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkInput;
+import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkUseCase;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
 import com.arqivame.storage.domain.file.Checksum;
@@ -27,16 +29,19 @@ public class TestController {
     // @PostMapping()
 
     private final CreateUploadSessionUseCase createUploadSessionUseCase;
+    private final WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase;
 
-    public TestController(CreateUploadSessionUseCase createUploadSessionUseCase) {
+    public TestController(CreateUploadSessionUseCase createUploadSessionUseCase,
+            WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase) {
         this.createUploadSessionUseCase = createUploadSessionUseCase;
+        this.writeUploadSessionChunkUseCase = writeUploadSessionChunkUseCase;
     }
 
-    @PutMapping(value = "/uploads/{id}/parts/{n}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PutMapping(value = "{fileId}/sessions/{sessionId}/chunks/{chunkPart}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> uploadPart(
-            @PathVariable String id,
-            @PathVariable int n,
-            @RequestHeader("X-Valet-Key") String valetKey,
+            @PathVariable UUID fileId,
+            @PathVariable UUID sessionId,
+            @PathVariable Long chunkPart,
             HttpServletRequest request) { // Usamos o request para pegar o stream puro
 
         // 1. Validação da Chave ANTES de ler o corpo
@@ -46,18 +51,27 @@ public class TestController {
         // 2. Pegar o stream original do socket
         try (InputStream rawStream = request.getInputStream()) {
 
+            writeUploadSessionChunkUseCase
+                    .execute(new WriteUploadSessionChunkInput(
+                            fileId,
+                            sessionId,
+                            "123-abc",
+                            Checksum.Algorithm.MD5,
+                            rawStream,
+                            chunkPart));
+
             // 3. Aplicar o limite de velocidade lido do Token
-            // int rateLimit = claims.get("rate", Integer.class);
-            ThrottledInputStream throttledStream = ThrottledInputStream.builder()
-                    .setInputStream(rawStream)
-                    .setMaxBytes(10000 * 1024, ChronoUnit.SECONDS)
-                    .get();
+            // // int rateLimit = claims.get("rate", Integer.class);
+            // ThrottledInputStream throttledStream = ThrottledInputStream.builder()
+            // .setInputStream(rawStream)
+            // .setMaxBytes(10000 * 1024, ChronoUnit.SECONDS)
+            // .get();
 
-            // ThrottledInputStream throttledStream = new ThrottledInputStream(rawStream,
-            // 100 * 1024); // Exemplo: 100 KB/s
+            // // ThrottledInputStream throttledStream = new ThrottledInputStream(rawStream,
+            // // 100 * 1024); // Exemplo: 100 KB/s
 
-            // 4. Gravar diretamente no Storage
-            // storageService.savePart(id, n, throttledStream);
+            // // 4. Gravar diretamente no Storage
+            // // storageService.savePart(id, n, throttledStream);
 
             return ResponseEntity.ok().build();
         } catch (IOException e) {

@@ -17,15 +17,16 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
     private final EventDispatcher eventDispatcher;
 
     private final FileGateway fileGateway;
-    private final StorageService inputStreamWriter;
+
+    private final StorageService storageService;
 
     public DefaultWriteUploadSessionChunkUseCase(
             final EventDispatcher eventDispatcher,
             final FileGateway fileGateway,
-            final StorageService inputStreamWriter) {
+            final StorageService storageService) {
         this.eventDispatcher = Objects.requireNonNull(eventDispatcher);
         this.fileGateway = Objects.requireNonNull(fileGateway);
-        this.inputStreamWriter = Objects.requireNonNull(inputStreamWriter);
+        this.storageService = Objects.requireNonNull(storageService);
     }
 
     @Override
@@ -49,7 +50,7 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
                                 chunkIndex,
                                 checksumValue,
                                 chunkData,
-                                inputStreamWriter)));
+                                storageService)));
 
     }
 

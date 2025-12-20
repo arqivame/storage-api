@@ -1,6 +1,7 @@
 package com.arqivame.storage.infrastructure.file.persistence;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -90,7 +91,7 @@ public class ChunkJpaEntity {
                 size,
                 status,
                 writtenAt,
-                writer.orElse(null));
+                Objects.isNull(writer) ? null : writer.orElse(null));
     }
 
     public UUID getId() {
