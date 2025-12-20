@@ -54,7 +54,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
 
         eventDispatcher.notify(fileGateway.save(file));
 
-        return new CreateUploadSessionOutput(file.getId().getValue(), sessionId.getValue());
+        return CreateUploadSessionOutput.from(fileId, sessionId, chunkCalculationResult);
 
     }
 
