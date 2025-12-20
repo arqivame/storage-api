@@ -65,21 +65,19 @@ public class TestController {
         }
     }
 
-    @PostMapping(path = "{fileId}/sessions", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<Object> createUploadSession(final UUID fileId, final HttpServletRequest request) {
+    @PostMapping(path = "{fileId}/sessions")
+    public ResponseEntity<Object> createUploadSession(final UUID fileId) {
 
         final var input = new CreateUploadSessionInput(
                 fileId,
-                null,
+                2_742_190_080L,
                 Duration.ofHours(1),
                 1,
-                "123",
+                "123-abc",
                 Checksum.Algorithm.MD5);
 
-        createUploadSessionUseCase.execute(input);
+        return ResponseEntity.ok(createUploadSessionUseCase.execute(input));
 
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createUploadSession'");
     }
 
 }
