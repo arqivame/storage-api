@@ -39,6 +39,9 @@ public class FileJpaEntity {
     @Transient
     private Queue<Event<?>> events;
 
+    public FileJpaEntity() {
+    }
+
     private FileJpaEntity(
             final UUID id,
             final String checksumValue,

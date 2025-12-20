@@ -49,6 +49,9 @@ public class ChunkJpaEntity {
     @JoinColumn(name = "session_id", insertable = false, updatable = false)
     private UploadSessionJpaEntity session;
 
+    public ChunkJpaEntity() {
+    }
+
     private ChunkJpaEntity(
             final UUID id,
             final Long index,

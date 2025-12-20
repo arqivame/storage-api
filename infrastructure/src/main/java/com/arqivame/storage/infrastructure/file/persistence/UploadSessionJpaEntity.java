@@ -43,7 +43,10 @@ public class UploadSessionJpaEntity {
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     private FileJpaEntity file;
 
-    public UploadSessionJpaEntity(
+    public UploadSessionJpaEntity() {
+    }
+
+    private UploadSessionJpaEntity(
             final UUID id,
             final Instant createdAt,
             final Duration maxIdleTime,
