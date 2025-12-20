@@ -1,6 +1,9 @@
 package com.arqivame.storage.domain.file.service;
 
-public class ChunkCalculatorService {
+public final class ChunkCalculatorService {
+
+    private ChunkCalculatorService() {
+    }
 
     public static ChunkCalculationResult calculate(final Long maxAllowedChunkSize, final Long fileSize) {
 
