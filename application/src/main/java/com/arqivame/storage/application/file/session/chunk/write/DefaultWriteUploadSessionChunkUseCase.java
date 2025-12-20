@@ -12,14 +12,14 @@ import com.arqivame.storage.domain.file.UploadSessionID;
 import com.arqivame.storage.domain.file.service.ChunkWriterService;
 import com.arqivame.storage.domain.file.service.StorageService;
 
-public class DefaultWriteUploadSessionChunk extends WriteUploadSessionChunk {
+public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChunkUseCase {
 
     private final EventDispatcher eventDispatcher;
 
     private final FileGateway fileGateway;
     private final StorageService inputStreamWriter;
 
-    public DefaultWriteUploadSessionChunk(
+    public DefaultWriteUploadSessionChunkUseCase(
             final EventDispatcher eventDispatcher,
             final FileGateway fileGateway,
             final StorageService inputStreamWriter) {
