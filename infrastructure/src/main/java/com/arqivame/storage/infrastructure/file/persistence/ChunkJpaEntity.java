@@ -56,7 +56,7 @@ public class ChunkJpaEntity {
 
         return new ChunkJpaEntity(
                 chunk.getId().getValue(),
-                chunk.getUploadedAt(),
+                chunk.getWrittenAt(),
                 chunk.getWritableStream().orElse(null),
                 UploadSessionJpaEntity.fromDomain(file, session));
     }

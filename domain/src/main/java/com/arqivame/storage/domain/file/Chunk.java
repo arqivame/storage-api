@@ -5,39 +5,73 @@ import java.time.Instant;
 import java.util.Optional;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.file.service.InputStreamWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class Chunk extends Entity<ChunkID> {
 
-    private final Checksum checksum;
     private final Integer index;
-    private final Instant uploadedAt;
-    private final Optional<InputStream> writableStream;
+    private ChunkStatus status;
+
+    private Instant writtedAt;
+
+    private Checksum checksum;
+    private Boolean isPersisted;
+
+    private Optional<InputStreamWriter> writer;
+
+    // private Optional<InputStream> writableStream;
 
     private Chunk(
             final ChunkID id,
-            final Checksum checksum,
             final Integer index,
-            final Instant uploadedAt,
+            final ChunkStatus status,
+            final Boolean isPersisted,
+            final Checksum checksum,
+            final Instant writtedAt,
             final InputStream writableStream) {
         super(id);
-        this.checksum = checksum;
         this.index = index;
-        this.uploadedAt = uploadedAt;
-        this.writableStream = Optional.ofNullable(writableStream);
+        this.status = status;
+        this.isPersisted = isPersisted;
+        this.checksum = checksum;
+        this.writtedAt = writtedAt;
+        // this.writableStream = Optional.ofNullable(writableStream);
     }
 
-    public static Chunk create(final Checksum checksum, final Integer index, final InputStream writableStream) {
-        return new Chunk(ChunkID.unique(), checksum, index, Instant.now(), writableStream);
+    public static Chunk create(final Integer index) {
+        return new Chunk(
+                ChunkID.unique(),
+                index,
+                ChunkStatus.PENDING,
+                false,
+                null,
+                null,
+                null);
     }
+
+    // public static Chunk create(final Checksum checksum, final Integer index,
+    // final InputStream writableStream) {
+    // return new Chunk(ChunkID.unique(), checksum, index, Instant.now(),
+    // writableStream);
+    // }
 
     public static Chunk from(
             final ChunkID id,
-            final Checksum checksum,
             final Integer index,
-            final Instant uploadedAt,
+            final ChunkStatus status,
+            final Boolean isPersisted,
+            final Checksum checksum,
+            final Instant writtedAt,
             final InputStream writableStream) {
-        return new Chunk(id, checksum, index, uploadedAt, writableStream);
+        return new Chunk(
+                id,
+                index,
+                status,
+                isPersisted,
+                checksum,
+                writtedAt,
+                writableStream);
     }
 
     @Override
@@ -46,22 +80,56 @@ public class Chunk extends Entity<ChunkID> {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
-    public Checksum getChecksum() {
-        return checksum;
+    // public Chunk markAsWritten(final Checksum checksum) {
+    public Chunk markAsWritten() {
+
+        // if (this.checksum == null)
+        // throw new IllegalStateException("Cannot mark chunk as written without a
+        // checksum");
+
+        // if (this.checksum != null && !this.checksum.equals(checksum))
+        // throw new IllegalStateException("Cannot mark chunk as written with an invalid
+        // checksum");
+
+        this.status = ChunkStatus.WRITTEN;
+        this.isPersisted = true;
+
+        this.writtedAt = Instant.now();
+        return this;
     }
 
-    public Integer getIndex() {
+    public Chunk markAsWriting() {
+        this.status = ChunkStatus.WRITING;
+        return this;
+    }
+
+    public Chunk assignWriter(final InputStreamWriter writer) {
+
+        if (writer == null)
+            throw new IllegalArgumentException("Writer cannot be null");
+
+        this.writer = Optional.ofNullable(writer);
+        return this;
+    }
+
+    public Chunk write(final InputStream inputStream, final Long bitsPerSecondsWrittenRate) {
+
+        if (writer.isEmpty())
+            throw new RuntimeException("No writer available for this chunk");
+
+        final var w = writer.get();
+        w.write(inputStream, bitsPerSecondsWrittenRate);
+        this.writtedAt = Instant.now();
+
+        return this;
+    }
+
+    public Integer index() {
         return index;
     }
 
-    public Instant getUploadedAt() {
-        return uploadedAt;
-    }
-
-    // TODO find a better way to handle streams inside domain
-    // without exposing them directly
-    public Optional<InputStream> getWritableStream() {
-        return writableStream;
+    public ChunkStatus status() {
+        return status;
     }
 
 }

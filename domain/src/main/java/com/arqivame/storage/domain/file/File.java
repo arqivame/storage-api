@@ -84,7 +84,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     // public Boolean hasOpenUploadSession() {
 
-    //     return uploadSession.filter(session -> !session.isIdleTimeExceeded()).isPresent();
+    // return uploadSession.filter(session ->
+    // !session.isIdleTimeExceeded()).isPresent();
     // }
 
     public UploadSession openUploadSession(final Integer totalChunks, final Duration maxIdleTime) {
@@ -122,8 +123,10 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return size;
     }
 
-    public Optional<UploadSession> getUploadSession() {
-        return uploadSession;
+    public UploadSession getUploadSession(final UploadSessionID sessionId) {
+        return uploadSession
+                .filter(session -> session.getId().equals(sessionId))
+                .orElseThrow(() -> new RuntimeException("No open upload session with ID: " + sessionId));
     }
 
     public Queue<Event<?>> getEvents() {

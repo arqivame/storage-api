@@ -50,7 +50,7 @@ public class DefaultFileGateway implements FileGateway {
     @Override
     public File save(final File file) {
 
-        file.getUploadSession().ifPresent(session -> session.writePendingChunks(chunkStreamWriter));
+        file.getUploadSession().ifPresent(session -> session.writeChunk(chunkStreamWriter));
 
         return fileJpaRepository
                 .save(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))
