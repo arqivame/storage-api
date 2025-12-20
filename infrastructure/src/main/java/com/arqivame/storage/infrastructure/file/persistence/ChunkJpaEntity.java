@@ -46,7 +46,7 @@ public class ChunkJpaEntity {
     private Optional<StorageService> writer;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", insertable = false, updatable = false)
+    @JoinColumn(name = "session_id", updatable = false)
     private UploadSessionJpaEntity session;
 
     public ChunkJpaEntity() {
