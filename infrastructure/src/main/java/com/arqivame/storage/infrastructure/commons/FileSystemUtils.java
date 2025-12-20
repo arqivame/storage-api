@@ -24,9 +24,10 @@ public final class FileSystemUtils {
         if (content == null)
             throw new IllegalArgumentException("Failed to write empty file.");
 
-        final Path destinationFile = location.resolve(Paths.get(fileName)).normalize().toAbsolutePath();
+        final Path destinationFile = location.resolve(fileName).normalize().toAbsolutePath();
 
         try (InputStream inputStream = content) {
+            Files.createDirectories(destinationFile.getParent());
             Files.copy(inputStream, destinationFile, options);
 
         } catch (FileAlreadyExistsException e) {

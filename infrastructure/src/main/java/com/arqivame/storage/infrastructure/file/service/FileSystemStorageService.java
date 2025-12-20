@@ -32,16 +32,19 @@ public class FileSystemStorageService implements StorageService {
 
         final Path sessionLocation = rootLocation.resolve(fullKey);
 
-        FileSystemUtils.write(
+        writeThrottleInputStream(
                 sessionLocation,
                 lastSegment,
-                throttleInputStream(inputStream, bytesPerSecondsWrittenRate));
+                inputStream,
+                bytesPerSecondsWrittenRate);
 
         return new Checksum("123-abc", checksumAlgorithm);
 
     }
 
-    private static InputStream throttleInputStream(
+    private static void writeThrottleInputStream(
+            final Path sessionLocation,
+            final String lastSegment,
             final InputStream inputStream,
             final Long bytesPerSecondsWrittenRate) {
 
@@ -50,7 +53,12 @@ public class FileSystemStorageService implements StorageService {
                 .setInputStream(inputStream)
                 .setMaxBytes(bytesPerSecondsWrittenRate, ChronoUnit.SECONDS)
                 .get()) {
-            return is;
+
+            FileSystemUtils.write(
+                    sessionLocation,
+                    lastSegment,
+                    is);
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to throttle input stream", e);
         }
