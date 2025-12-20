@@ -14,7 +14,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = Throwable.class)
     public ResponseEntity<ApiError> handle(final Throwable ex) {
-        return ResponseEntity.internalServerError().body(ApiError.with("Internal Server Error"));
+        return ResponseEntity.internalServerError().body(ApiError.with("Internal Server Error ->" + ex.getMessage()));
     }
 
     @ExceptionHandler(value = InternalErrorException.class)
