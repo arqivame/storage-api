@@ -27,10 +27,10 @@ public final class ChunkWriterService {
             final File file,
             final UploadSessionID sessionId,
             final Long chunkIndex,
-            final Checksum checksumValue,
+            final Checksum checksum,
             final InputStream chunkData) {
 
-        file.fetchUploadSessionById(sessionId).writeChunk(chunkIndex, checksumValue, chunkData);
+        file.fetchUploadSessionById(sessionId).writeChunk(chunkIndex, checksum, chunkData);
 
         return file;
 

@@ -35,7 +35,7 @@ public class FileUseCaseConfig {
     CreateUploadSessionUseCase createUploadSessionUseCase() {
         return new DefaultCreateUploadSessionUseCase(
                 eventDispatcher,
-                1024L * 1024L * 5L, // 5 MB
+                1024L * 1024L * 20L, // 20 MB
                 fileGateway);
     }
 

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,14 +40,16 @@ public class TestController {
             @PathVariable UUID fileId,
             @PathVariable UUID sessionId,
             @PathVariable Long chunkPart,
+            @RequestHeader("X-Checksum-Value") String checksumValue,
+            @RequestHeader("X-Checksum-Algorithm") Checksum.Algorithm checksumAlgorithm,
             HttpServletRequest request) throws IOException {
 
         writeUploadSessionChunkUseCase
                 .execute(new WriteUploadSessionChunkInput(
                         fileId,
                         sessionId,
-                        "123-abc",
-                        Checksum.Algorithm.MD5,
+                        checksumValue,
+                        checksumAlgorithm,
                         request.getInputStream(),
                         chunkPart));
 
