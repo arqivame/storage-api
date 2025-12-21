@@ -1,17 +1,20 @@
 package com.arqivame.storage.infrastructure.file.service;
 
+import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.bounded;
+import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.digestible;
+import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.throttled;
+
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.time.temporal.ChronoUnit;
+import java.security.MessageDigest;
 import java.util.Objects;
-
-import org.apache.commons.io.input.BoundedInputStream;
-import org.apache.commons.io.input.ThrottledInputStream;
 
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.Checksum.Algorithm;
 import com.arqivame.storage.domain.file.service.StorageService;
 import com.arqivame.storage.infrastructure.commons.FileSystemUtils;
+import com.arqivame.storage.infrastructure.commons.MessageDigestUtils;
+import com.arqivame.storage.infrastructure.commons.StringUtils;
 
 public class FileSystemStorageService implements StorageService {
 
@@ -34,43 +37,39 @@ public class FileSystemStorageService implements StorageService {
 
         final Path sessionLocation = rootLocation.resolve(fullKey);
 
-        writeThrottleInputStream(
+        final MessageDigest digest = MessageDigestUtils.create(checksumAlgorithm);
+
+        write(
                 sessionLocation,
                 lastSegment,
                 inputStream,
                 sizeInBytes,
-                bytesPerSecondsWrittenRate);
+                bytesPerSecondsWrittenRate,
+                digest);
 
-        return new Checksum("123-abc", checksumAlgorithm);
+        return new Checksum(StringUtils.toHexString(digest.digest()), checksumAlgorithm);
 
     }
 
-    private static void writeThrottleInputStream(
+    private static void write(
             final Path sessionLocation,
             final String lastSegment,
             final InputStream inputStream,
             final Long sizeInBytes,
-            final Long bytesPerSecondsWrittenRate) {
+            final Long bytesPerSecondsWrittenRate,
+            final MessageDigest digest) {
 
-        ;
-
-        try (final InputStream is = BoundedInputStream
-                .builder()
-                .setInputStream(inputStream)
-                .setMaxCount(sizeInBytes)
-                .get()) {
+        try (final InputStream is = digestible(
+                throttled(bounded(inputStream, sizeInBytes), bytesPerSecondsWrittenRate),
+                digest)) {
 
             FileSystemUtils.write(
                     sessionLocation,
                     lastSegment,
-                    ThrottledInputStream
-                            .builder()
-                            .setInputStream(is)
-                            .setMaxBytes(bytesPerSecondsWrittenRate, ChronoUnit.SECONDS)
-                            .get());
+                    is);
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to throttle input stream", e);
+            throw new RuntimeException("Failed to write input stream", e);
         }
 
     }
