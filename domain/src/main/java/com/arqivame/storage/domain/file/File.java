@@ -131,7 +131,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File cancelUploadSession(final UploadSessionID sessionId) {
 
-        final UploadSession canceledSession = fetchUploadSessionById(sessionId).cancel().cancel();
+        final UploadSession canceledSession = fetchUploadSessionById(sessionId).cancel();
 
         events.add(FileUploadSessionCanceledEvent.create(this, canceledSession));
 
