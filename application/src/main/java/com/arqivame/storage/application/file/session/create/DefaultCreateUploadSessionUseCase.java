@@ -10,7 +10,6 @@ import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
 import com.arqivame.storage.domain.file.service.ChunkCalculatorService;
-import com.arqivame.storage.domain.file.service.SessionCreatorService;
 
 public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCase {
 
@@ -44,8 +43,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
 
         final var chunkCalculationResult = ChunkCalculatorService.calculate(maxAllowedChunkSize, fileSize);
 
-        final UploadSessionID sessionId = SessionCreatorService.createSession(
-                file,
+        final UploadSessionID sessionId = file.openUploadSession(
                 chunkCalculationResult.totalChunks(),
                 chunkCalculationResult.chunkSize(),
                 chunkCalculationResult.lastChunkSize(),

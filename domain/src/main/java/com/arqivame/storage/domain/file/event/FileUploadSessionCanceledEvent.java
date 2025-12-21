@@ -12,22 +12,22 @@ import com.arqivame.storage.domain.event.EventEntity;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
 
-public class FileUploadSessionClosedEvent extends Event<FileUploadSessionClosedEvent.Data> {
+public class FileUploadSessionCanceledEvent extends Event<FileUploadSessionCanceledEvent.Data> {
 
     private static final String ENTITY = "file.upload_session";
-    private static final String ACTION = "closed";
+    private static final String ACTION = "canceled";
     private static final String VERSION = "0.0.1";
 
-    private static final FileUploadSessionClosedEvent DEFAULT_INSTANCE = new FileUploadSessionClosedEvent();
+    private static final FileUploadSessionCanceledEvent DEFAULT_INSTANCE = new FileUploadSessionCanceledEvent();
 
-    private FileUploadSessionClosedEvent() {
+    private FileUploadSessionCanceledEvent() {
         super(ENTITY, ACTION, VERSION, null, null, null);
     }
 
-    private FileUploadSessionClosedEvent(
+    private FileUploadSessionCanceledEvent(
             Instant occurredAt,
             Set<EventEntity> relatedEntities,
-            FileUploadSessionClosedEvent.Data data) {
+            FileUploadSessionCanceledEvent.Data data) {
         super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
     }
 
@@ -42,8 +42,8 @@ public class FileUploadSessionClosedEvent extends Event<FileUploadSessionClosedE
 
     }
 
-    public static FileUploadSessionClosedEvent create(final File file, final UploadSession session) {
-        return new FileUploadSessionClosedEvent(
+    public static FileUploadSessionCanceledEvent create(final File file, final UploadSession session) {
+        return new FileUploadSessionCanceledEvent(
                 Instant.now(),
                 Stream
                         .of(EventEntity.of(file), EventEntity.of(session))

@@ -13,6 +13,8 @@ import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class UploadSession extends Entity<UploadSessionID> {
 
+    private UploadSessionStatus status;
+
     private final FileID file;
     private final Instant createdAt;
     private final Duration maxIdleTime;
@@ -25,6 +27,7 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     private UploadSession(
             final UploadSessionID id,
+            final UploadSessionStatus status,
             final FileID file,
             final Instant createdAt,
             final Duration maxIdleTime,
@@ -35,6 +38,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Long lastChunkSize,
             final Set<Chunk> chunks) {
         super(id);
+        this.status = status;
         this.file = Objects.requireNonNull(file);
         this.createdAt = createdAt;
         this.maxIdleTime = maxIdleTime;
@@ -70,6 +74,7 @@ public class UploadSession extends Entity<UploadSessionID> {
 
         return new UploadSession(
                 UploadSessionID.unique(),
+                UploadSessionStatus.ACTIVE,
                 file.getId(),
                 Instant.now(),
                 maxIdleTime,
@@ -83,6 +88,7 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public static UploadSession with(
             final UploadSessionID id,
+            final UploadSessionStatus status,
             final FileID file,
             final Instant createdAt,
             final Duration maxIdleTime,
@@ -94,6 +100,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Set<Chunk> chunks) {
         return new UploadSession(
                 id,
+                status,
                 file,
                 createdAt,
                 maxIdleTime,
@@ -146,6 +153,11 @@ public class UploadSession extends Entity<UploadSessionID> {
         return this;
     }
 
+    public UploadSession cancel() {
+        this.status = UploadSessionStatus.CANCELED;
+        return this;
+    }
+
     private Chunk createChunk(final Long index) {
 
         if (index < 0 || index >= totalChunks)
@@ -161,6 +173,10 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public Boolean isComplete() {
         return this.chunks.size() >= this.totalChunks;
+    }
+
+    public UploadSessionStatus getStatus() {
+        return status;
     }
 
     public FileID getFile() {

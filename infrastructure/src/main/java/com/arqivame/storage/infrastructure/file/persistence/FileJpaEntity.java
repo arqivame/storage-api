@@ -1,7 +1,7 @@
 package com.arqivame.storage.infrastructure.file.persistence;
 
-import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 
 import com.arqivame.storage.domain.event.Event;
@@ -55,12 +55,12 @@ public class FileJpaEntity {
         this.events = events;
     }
 
-    public File toDomain(final Optional<UploadSession> uploadSession) {
+    public File toDomain(final Set<UploadSession> uploadSessions) {
         return File.with(
                 FileID.of(id),
                 Checksum.from(checksumValue, checksumAlgorithm),
                 size,
-                uploadSession,
+                uploadSessions,
                 events);
     }
 

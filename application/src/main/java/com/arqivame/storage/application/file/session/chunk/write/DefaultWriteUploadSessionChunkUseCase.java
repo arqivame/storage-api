@@ -9,7 +9,6 @@ import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
-import com.arqivame.storage.domain.file.service.ChunkWriterService;
 import com.arqivame.storage.domain.file.service.StorageService;
 
 public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChunkUseCase {
@@ -42,22 +41,8 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
                 .findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found: " + input.fileId()));
 
-        eventDispatcher.notify(
-                fileGateway.save(
-                        ChunkWriterService.initiateChunkWriting(
-                                file,
-                                sessionId,
-                                chunkIndex,
-                                storageService)));
-
-        eventDispatcher.notify(
-                fileGateway.save(
-                        ChunkWriterService.writeChunk(
-                                file,
-                                sessionId,
-                                chunkIndex,
-                                checksumValue,
-                                chunkData)));
+        eventDispatcher.notify(fileGateway.save(file.initiateChunkWriting(sessionId, chunkIndex, storageService)));
+        eventDispatcher.notify(fileGateway.save(file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData)));
 
     }
 

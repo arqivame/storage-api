@@ -48,19 +48,21 @@ public class DefaultFileGateway implements FileGateway {
 
         fileJpaRepository
                 .save(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))
-                .toDomain(file.getUploadSession());
+                .toDomain(file.getUploadSessions());
 
         file
-                .getUploadSession()
-                .ifPresent(session -> saveChunks(file, saveUploadSession(file, session)));
+                .getUploadSessions()
+                .forEach(session -> saveChunks(file, saveUploadSession(file, session)));
 
         return file;
     }
 
-    private Optional<UploadSession> findUploadSession(final FileID fileId) {
+    private Set<UploadSession> findUploadSession(final FileID fileId) {
         return uploadSessionJpaRepository
-                .findByFileId(fileId.getValue())
-                .map(session -> session.toDomain(findAllSessionChunks(UploadSessionID.of(session.getId()))));
+                .findAllByFileId(fileId.getValue())
+                .stream()
+                .map(session -> session.toDomain(findAllSessionChunks(UploadSessionID.of(session.getId()))))
+                .collect(Collectors.toSet());
     }
 
     private Set<Chunk> findAllSessionChunks(final UploadSessionID uploadSessionId) {

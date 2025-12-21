@@ -10,12 +10,15 @@ import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSession;
 import com.arqivame.storage.domain.file.UploadSessionID;
+import com.arqivame.storage.domain.file.UploadSessionStatus;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity(name = "UploadSession")
@@ -24,6 +27,10 @@ public class UploadSessionJpaEntity {
 
     @Id
     private UUID id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UploadSessionStatus status;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
@@ -46,7 +53,7 @@ public class UploadSessionJpaEntity {
     @Column(name = "last_chunk_size", nullable = false)
     private Long lastChunkSize;
 
-    @OneToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private FileJpaEntity file;
 
     public UploadSessionJpaEntity() {
@@ -54,6 +61,7 @@ public class UploadSessionJpaEntity {
 
     private UploadSessionJpaEntity(
             final UUID id,
+            final UploadSessionStatus status,
             final Instant createdAt,
             final Duration maxIdleTime,
             final Long maxBytesPerSecondTransferRatePerChunk,
@@ -63,6 +71,7 @@ public class UploadSessionJpaEntity {
             final Long lastChunkSize,
             final FileJpaEntity file) {
         this.id = id;
+        this.status = status;
         this.createdAt = createdAt;
         this.maxIdleTime = maxIdleTime;
         this.maxBytesPerSecondTransferRatePerChunk = maxBytesPerSecondTransferRatePerChunk;
@@ -76,6 +85,7 @@ public class UploadSessionJpaEntity {
     public UploadSession toDomain(final Set<Chunk> uploadedChunks) {
         return UploadSession.with(
                 UploadSessionID.of(this.id),
+                status,
                 FileID.of(file.getId()),
                 createdAt,
                 maxIdleTime,
@@ -90,6 +100,7 @@ public class UploadSessionJpaEntity {
     public static UploadSessionJpaEntity fromDomain(final File file, final UploadSession session) {
         return new UploadSessionJpaEntity(
                 session.getId().getValue(),
+                session.getStatus(),
                 session.getCreatedAt(),
                 session.getMaxIdleTime(),
                 session.getMaxBytesPerSecondTransferRatePerChunk(),
@@ -106,6 +117,14 @@ public class UploadSessionJpaEntity {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UploadSessionStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UploadSessionStatus status) {
+        this.status = status;
     }
 
     public Instant getCreatedAt() {
@@ -200,6 +219,7 @@ public class UploadSessionJpaEntity {
     @Override
     public String toString() {
         return "UploadSessionJpaEntity [id=" + id
+                + ", status=" + status
                 + ", createdAt=" + createdAt
                 + ", maxIdleTime=" + maxIdleTime
                 + ", maxBytesPerSecondTransferRatePerChunk=" + maxBytesPerSecondTransferRatePerChunk

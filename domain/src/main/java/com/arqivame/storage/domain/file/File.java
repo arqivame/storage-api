@@ -1,21 +1,26 @@
 package com.arqivame.storage.domain.file;
 
+import java.io.InputStream;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 
 import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
+import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
+import com.arqivame.storage.domain.file.service.StorageService;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class File extends AggregateRoot<FileID> implements EventSource {
 
     private final Checksum checksum;
     private final Long size;
-    private Optional<UploadSession> uploadSession;
+    private Set<UploadSession> uploadSessions;
 
     private final Queue<Event<?>> events;
 
@@ -23,12 +28,12 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final FileID id,
             final Checksum checksum,
             final Long size,
-            final Optional<UploadSession> uploadSession,
+            final Set<UploadSession> uploadSessions,
             final Queue<Event<?>> events) {
         super(id);
         this.checksum = checksum;
         this.size = size;
-        this.uploadSession = uploadSession;
+        this.uploadSessions = Objects.isNull(uploadSessions) ? new HashSet<>() : new HashSet<>(uploadSessions);
 
         this.events = Objects.isNull(events) ? new java.util.LinkedList<>() : new java.util.LinkedList<>(events);
     }
@@ -41,7 +46,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 id,
                 checksum,
                 size,
-                Optional.empty(),
+                Set.of(),
                 new LinkedList<>());
     }
 
@@ -49,13 +54,13 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final FileID id,
             final Checksum checksum,
             final Long size,
-            final Optional<UploadSession> uploadSession,
+            final Set<UploadSession> uploadSessions,
             final Queue<Event<?>> events) {
         return new File(
                 id,
                 checksum,
                 size,
-                uploadSession,
+                uploadSessions,
                 events);
     }
 
@@ -71,13 +76,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return Optional.ofNullable(this.events.poll());
     }
 
-    // public Boolean hasOpenUploadSession() {
-
-    // return uploadSession.filter(session ->
-    // !session.isIdleTimeExceeded()).isPresent();
-    // }
-
-    public UploadSession openUploadSession(
+    public UploadSessionID openUploadSession(
             final Long totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
@@ -85,10 +84,14 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
-        uploadSession.ifPresent((u) -> {
+        final Boolean hasAnySessionActive = uploadSessions
+                .stream()
+                .map(UploadSession::getStatus)
+                .anyMatch(status -> UploadSessionStatus.ACTIVE.equals(status));
+
+        if (hasAnySessionActive)
             throw new RuntimeException(
                     "Session already open, please close the current session before opening a new one");
-        });
 
         final UploadSession session = UploadSession.create(
                 this,
@@ -99,27 +102,47 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime);
 
-        uploadSession = Optional.of(session);
+        uploadSessions.add(session);
 
-        return session;
+        return session.getId();
 
     }
 
-    public File closeUploadSession() {
+    public File initiateChunkWriting(
+            final UploadSessionID sessionId,
+            final Long chunkIndex,
+            final StorageService writer) {
 
-        uploadSession.ifPresentOrElse((u) -> {
-            uploadSession = Optional.empty();
-        }, () -> {
-            throw new RuntimeException("No open upload session to close");
-        });
+        fetchUploadSessionById(sessionId).initiateChunkWriting(chunkIndex, writer);
 
         return this;
-
     }
 
-    public UploadSession fetchUploadSessionById(final UploadSessionID sessionId) {
-        return uploadSession
+    public File writeChunk(
+            final UploadSessionID sessionId,
+            final Long chunkIndex,
+            final Checksum checksum,
+            final InputStream chunkData) {
+
+        fetchUploadSessionById(sessionId).writeChunk(chunkIndex, checksum, chunkData);
+
+        return this;
+    }
+
+    public File cancelUploadSession(final UploadSessionID sessionId) {
+
+        final UploadSession canceledSession = fetchUploadSessionById(sessionId).cancel().cancel();
+
+        events.add(FileUploadSessionCanceledEvent.create(this, canceledSession));
+
+        return this;
+    }
+
+    private UploadSession fetchUploadSessionById(final UploadSessionID sessionId) {
+        return uploadSessions
+                .stream()
                 .filter(session -> session.getId().equals(sessionId))
+                .findFirst()
                 .orElseThrow(() -> new RuntimeException("No open upload session with ID: " + sessionId));
     }
 
@@ -131,8 +154,8 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return size;
     }
 
-    public Optional<UploadSession> getUploadSession() {
-        return uploadSession;
+    public Set<UploadSession> getUploadSessions() {
+        return Set.copyOf(uploadSessions);
     }
 
     public Queue<Event<?>> getEvents() {
