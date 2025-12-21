@@ -1,45 +1,31 @@
 package com.arqivame.storage.infrastructure.file.adapter;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import com.arqivame.storage.infrastructure.file.model.ChunkMetadata;
+import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
+import com.arqivame.storage.domain.file.Checksum;
 
 public interface FileAdapter {
 
-//     static UploadSessionChunkInput adapt(final MultipartFile chunk, final Jwt jwt) {
+    public static CreateUploadSessionInput adaptCreateUploadSessionInput(JwtAuthenticationToken authentication) {
 
-//         return null;
-//         // try {
-//         //     final ChunkMetadata chunkMetadata = adapt(jwt);
+        Jwt jwt = authentication.getToken();
 
-//         //     // final UploadSessionChunkInput.Chunk chunkInput = new UploadSessionChunkInput.Chunk(
-//         //     //         chunk.getInputStream(),
-//         //     //         chunkMetadata.index());
+        UUID fileId = Optional.<UUID>ofNullable(jwt.getClaim("fileId")).orElse(null);
 
-//         //     return new UploadSessionChunkInput(chunkMetadata.fileId(), chunkMetadata.sessionId(), chunkInput);
-//         // } catch (IOException e) {
-//         //     throw InternalErrorException.with("An Error ocurred on adapt MultipartFile to UploadSessionChunkInput", e);
-//         // }
-//     }
-
-    private static ChunkMetadata adapt(final Jwt jwt) {
-
-        final var throwable = new RuntimeException();
-
-        final UUID fileId = Optional.<UUID>ofNullable(jwt.getClaim("fileId"))
-                .orElseThrow(() -> throwable);
-        final UUID sessionId = Optional.<UUID>ofNullable(jwt.getClaim("sessionId"))
-                .orElseThrow(() -> throwable);
-        final Integer chunkIndex = Optional.<Integer>ofNullable(jwt.getClaim("chunkIndex"))
-                .orElseThrow(() -> throwable);
-
-        return new ChunkMetadata(
+        return new CreateUploadSessionInput(
                 fileId,
-                sessionId,
-                chunkIndex);
+                1024L,
+                Duration.ofMinutes(5),
+                2,
+                10240L,
+                "123-abc",
+                Checksum.Algorithm.MD5);
     }
 
 }
