@@ -97,6 +97,7 @@ public class Chunk extends Entity<ChunkID> {
                 .write(
                         key,
                         inputStream,
+                        size,
                         bytesPerSecondsWrittenRate,
                         checksumValue.algorithm());
 

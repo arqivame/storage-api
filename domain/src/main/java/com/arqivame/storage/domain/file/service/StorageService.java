@@ -14,6 +14,7 @@ public interface StorageService {
     Checksum write(
             StorageKey key,
             InputStream inputStream,
+            Long sizeInBytes,
             Long bytesPerSecondsWrittenRate,
             Checksum.Algorithm checksumAlgorithm);
 

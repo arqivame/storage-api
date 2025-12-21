@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.input.ThrottledInputStream;
 
 import com.arqivame.storage.domain.file.Checksum;
@@ -24,6 +25,7 @@ public class FileSystemStorageService implements StorageService {
     public Checksum write(
             final StorageKey key,
             final InputStream inputStream,
+            final Long sizeInBytes,
             final Long bytesPerSecondsWrittenRate,
             final Algorithm checksumAlgorithm) {
 
@@ -36,6 +38,7 @@ public class FileSystemStorageService implements StorageService {
                 sessionLocation,
                 lastSegment,
                 inputStream,
+                sizeInBytes,
                 bytesPerSecondsWrittenRate);
 
         return new Checksum("123-abc", checksumAlgorithm);
@@ -46,18 +49,25 @@ public class FileSystemStorageService implements StorageService {
             final Path sessionLocation,
             final String lastSegment,
             final InputStream inputStream,
+            final Long sizeInBytes,
             final Long bytesPerSecondsWrittenRate) {
 
-        try (final InputStream is = ThrottledInputStream
+        ;
+
+        try (final InputStream is = BoundedInputStream
                 .builder()
                 .setInputStream(inputStream)
-                .setMaxBytes(bytesPerSecondsWrittenRate, ChronoUnit.SECONDS)
+                .setMaxCount(sizeInBytes)
                 .get()) {
 
             FileSystemUtils.write(
                     sessionLocation,
                     lastSegment,
-                    is);
+                    ThrottledInputStream
+                            .builder()
+                            .setInputStream(is)
+                            .setMaxBytes(bytesPerSecondsWrittenRate, ChronoUnit.SECONDS)
+                            .get());
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to throttle input stream", e);
