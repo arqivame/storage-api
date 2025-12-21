@@ -35,6 +35,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
         final Long fileSize = input.fileSize();
         final Duration idleTimeout = input.idleTimeout();
         final Integer maxChunksAtSameTime = input.maxChunksAtSameTime();
+        final Long maxBytesPerSecondTransferRatePerChunk = input.maxBytesPerSecondTransferRatePerChunk();
         final Checksum checksum = Checksum.from(input.checksumValue(), input.checksumAlgorithm());
 
         final File file = fileGateway
@@ -49,7 +50,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
                 chunkCalculationResult.chunkSize(),
                 chunkCalculationResult.lastChunkSize(),
                 idleTimeout,
-                fileSize,
+                maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime);
 
         eventDispatcher.notify(fileGateway.save(file));

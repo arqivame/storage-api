@@ -71,17 +71,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return Optional.ofNullable(this.events.poll());
     }
 
-    public File appendChunk(final Chunk chunk) {
-
-        this.uploadSession.ifPresentOrElse((session) -> {
-            session.addChunk(chunk);
-        }, () -> {
-            throw new RuntimeException("No open upload session to append chunk");
-        });
-
-        return this;
-    }
-
     // public Boolean hasOpenUploadSession() {
 
     // return uploadSession.filter(session ->

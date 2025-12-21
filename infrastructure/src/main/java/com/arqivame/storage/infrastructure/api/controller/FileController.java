@@ -44,6 +44,7 @@ public class FileController implements FileAPI {
                 null,
                 Duration.ofHours(1),
                 1,
+                1024L,
                 "123",
                 Checksum.Algorithm.MD5);
 

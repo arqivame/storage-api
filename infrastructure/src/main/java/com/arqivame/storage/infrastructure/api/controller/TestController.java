@@ -87,6 +87,7 @@ public class TestController {
                 2_742_190_080L,
                 Duration.ofHours(1),
                 1,
+                1024L,
                 "123-abc",
                 Checksum.Algorithm.MD5);
 

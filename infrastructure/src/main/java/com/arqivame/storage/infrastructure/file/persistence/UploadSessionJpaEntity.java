@@ -40,6 +40,12 @@ public class UploadSessionJpaEntity {
     @Column(name = "total_chunks", nullable = false)
     private Long totalChunks;
 
+    @Column(name = "chunk_size", nullable = false)
+    private Long chunkSize;
+
+    @Column(name = "last_chunk_size", nullable = false)
+    private Long lastChunkSize;
+
     @OneToOne(optional = false, fetch = FetchType.LAZY)
     private FileJpaEntity file;
 
@@ -53,6 +59,8 @@ public class UploadSessionJpaEntity {
             final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime,
             final Long totalChunks,
+            final Long chunkSize,
+            final Long lastChunkSize,
             final FileJpaEntity file) {
         this.id = id;
         this.createdAt = createdAt;
@@ -60,6 +68,8 @@ public class UploadSessionJpaEntity {
         this.maxBytesPerSecondTransferRatePerChunk = maxBytesPerSecondTransferRatePerChunk;
         this.maxChunksAtSameTime = maxChunksAtSameTime;
         this.totalChunks = totalChunks;
+        this.chunkSize = chunkSize;
+        this.lastChunkSize = lastChunkSize;
         this.file = file;
     }
 
@@ -72,6 +82,8 @@ public class UploadSessionJpaEntity {
                 maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime,
                 totalChunks,
+                chunkSize,
+                lastChunkSize,
                 uploadedChunks);
     }
 
@@ -83,6 +95,8 @@ public class UploadSessionJpaEntity {
                 session.getMaxBytesPerSecondTransferRatePerChunk(),
                 session.getMaxChunksAtSameTime(),
                 session.getTotalChunks(),
+                session.getChunkSize(),
+                session.getLastChunkSize(),
                 FileJpaEntity.fromDomain(file));
     }
 
@@ -134,6 +148,22 @@ public class UploadSessionJpaEntity {
         this.totalChunks = totalChunks;
     }
 
+    public Long getChunkSize() {
+        return chunkSize;
+    }
+
+    public void setChunkSize(Long chunkSize) {
+        this.chunkSize = chunkSize;
+    }
+
+    public Long getLastChunkSize() {
+        return lastChunkSize;
+    }
+
+    public void setLastChunkSize(Long lastChunkSize) {
+        this.lastChunkSize = lastChunkSize;
+    }
+
     public FileJpaEntity getFile() {
         return file;
     }
@@ -175,6 +205,8 @@ public class UploadSessionJpaEntity {
                 + ", maxBytesPerSecondTransferRatePerChunk=" + maxBytesPerSecondTransferRatePerChunk
                 + ", maxChunksAtSameTime=" + maxChunksAtSameTime
                 + ", totalChunks=" + totalChunks
+                + ", chunkSize=" + chunkSize
+                + ", lastChunkSize=" + lastChunkSize
                 + ", file=" + file
                 + "]";
     }

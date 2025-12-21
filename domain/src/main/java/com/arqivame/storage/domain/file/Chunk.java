@@ -67,23 +67,6 @@ public class Chunk extends Entity<ChunkID> {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
-    // public Chunk markAsWritten(final Checksum checksum) {
-    public Chunk markAsWritten() {
-
-        // if (this.checksum == null)
-        // throw new IllegalStateException("Cannot mark chunk as written without a
-        // checksum");
-
-        // if (this.checksum != null && !this.checksum.equals(checksum))
-        // throw new IllegalStateException("Cannot mark chunk as written with an invalid
-        // checksum");
-
-        this.status = ChunkStatus.WRITTEN;
-
-        this.writtenAt = Instant.now();
-        return this;
-    }
-
     public Chunk assignWriter(final StorageService writer) {
 
         if (Objects.isNull(writer))
@@ -122,6 +105,7 @@ public class Chunk extends Entity<ChunkID> {
             throw new RuntimeException("Checksum mismatch after writing chunk");
         }
 
+        this.status = ChunkStatus.WRITTEN;
         this.writtenAt = Instant.now();
 
         return this;
