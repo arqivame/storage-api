@@ -1,6 +1,5 @@
 package com.arqivame.storage.infrastructure.file.adapter;
 
-import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,7 +20,7 @@ public interface FileAdapter {
         return new CreateUploadSessionInput(
                 fileId,
                 1024L,
-                Duration.ofMinutes(5),
+                300L,
                 2,
                 10240L,
                 "123-abc",

@@ -33,7 +33,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
 
         final FileID fileId = FileID.of(input.fileId());
         final Long fileSize = input.fileSize();
-        final Duration idleTimeout = input.idleTimeout();
+        final Duration idleTimeout = Duration.ofSeconds(input.idleTimeoutSeconds());
         final Integer maxChunksAtSameTime = input.maxChunksAtSameTime();
         final Long maxBytesPerSecondTransferRatePerChunk = input.maxBytesPerSecondTransferRatePerChunk();
         final Checksum checksum = Checksum.from(input.checksumValue(), input.checksumAlgorithm());
