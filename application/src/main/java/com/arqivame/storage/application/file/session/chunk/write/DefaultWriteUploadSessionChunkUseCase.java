@@ -44,13 +44,20 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
         eventDispatcher.notify(
                 fileGateway.save(
+                        ChunkWriterService.initiateChunkWriting(
+                                file,
+                                sessionId,
+                                chunkIndex,
+                                storageService)));
+
+        eventDispatcher.notify(
+                fileGateway.save(
                         ChunkWriterService.writeChunk(
                                 file,
                                 sessionId,
                                 chunkIndex,
                                 checksumValue,
-                                chunkData,
-                                storageService)));
+                                chunkData)));
 
     }
 
