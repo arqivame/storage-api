@@ -43,8 +43,6 @@ public interface StorageService {
                             "uploads",
                             session.getStringValue(),
                             "chunks",
-                            chunk.getStringValue(),
-                            "index",
                             chunkIndex.toString()
                     });
         }
