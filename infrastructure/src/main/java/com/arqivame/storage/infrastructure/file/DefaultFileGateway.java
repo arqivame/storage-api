@@ -45,6 +45,10 @@ public class DefaultFileGateway implements FileGateway {
 
     @Override
     public File create(final File file) {
+
+        if (fileJpaRepository.existsById(Objects.requireNonNull(file.getId().getValue())))
+            throw new RuntimeException("File already exists: " + file.getId().getValue());
+
         return save(file);
     }
 
