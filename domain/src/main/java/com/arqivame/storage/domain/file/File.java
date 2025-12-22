@@ -69,8 +69,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
-    // public File
-
     @Override
     public Optional<Event<?>> nextEvent() {
         return Optional.ofNullable(this.events.poll());
