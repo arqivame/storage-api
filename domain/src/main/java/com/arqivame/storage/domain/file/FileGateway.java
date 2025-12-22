@@ -6,6 +6,8 @@ public interface FileGateway {
 
     Optional<File> findById(FileID id);
 
-    File save(File file);
+    File create(File file);
+
+    File update(File file);
 
 }

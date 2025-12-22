@@ -44,7 +44,20 @@ public class DefaultFileGateway implements FileGateway {
     }
 
     @Override
-    public File save(final File file) {
+    public File create(final File file) {
+        return save(file);
+    }
+
+    @Override
+    public File update(final File file) {
+
+        if (fileJpaRepository.existsById(Objects.requireNonNull(file.getId().getValue())))
+            return save(file);
+
+        throw new RuntimeException("File not found: " + file.getId().getValue());
+    }
+
+    private File save(final File file) {
 
         fileJpaRepository
                 .save(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))

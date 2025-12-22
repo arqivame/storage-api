@@ -51,7 +51,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
                 maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime);
 
-        eventDispatcher.notify(fileGateway.save(file));
+        eventDispatcher.notify(fileGateway.create(file));
 
         return CreateUploadSessionOutput.from(fileId, sessionId, chunkCalculationResult);
 

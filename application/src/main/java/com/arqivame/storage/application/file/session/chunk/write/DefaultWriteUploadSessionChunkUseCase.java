@@ -41,8 +41,8 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
                 .findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found: " + input.fileId()));
 
-        eventDispatcher.notify(fileGateway.save(file.initiateChunkWriting(sessionId, chunkIndex, storageService)));
-        eventDispatcher.notify(fileGateway.save(file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData)));
+        eventDispatcher.notify(fileGateway.update(file.initiateChunkWriting(sessionId, chunkIndex, storageService)));
+        eventDispatcher.notify(fileGateway.update(file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData)));
 
     }
 
