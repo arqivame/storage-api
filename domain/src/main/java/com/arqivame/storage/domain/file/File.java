@@ -20,7 +20,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     private final Checksum checksum;
     private final Long size;
-    private Set<UploadSession> uploadSessions;
+    private final Set<UploadSession> uploadSessions;
 
     private final Queue<Event<?>> events;
 

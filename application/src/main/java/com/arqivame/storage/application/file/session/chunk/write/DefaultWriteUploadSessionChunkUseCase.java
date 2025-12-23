@@ -10,6 +10,8 @@ import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
 import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.validation.ValidationHandler;
+import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChunkUseCase {
 
@@ -41,8 +43,17 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
                 .findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found: " + input.fileId()));
 
-        eventDispatcher.notify(fileGateway.update(file.initiateChunkWriting(sessionId, chunkIndex, storageService)));
-        eventDispatcher.notify(fileGateway.update(file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData)));
+        final ValidationHandler validation = Notification.create();
+
+        validation.validate(() -> file.initiateChunkWriting(sessionId, chunkIndex, storageService));
+        eventDispatcher.notify(fileGateway.update(file));
+        if (validation.hasError())
+            throw new RuntimeException("Cannot initiate chunk writing: " + validation.getErrors().toString());
+
+        validation.validate(() -> file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData));
+        eventDispatcher.notify(fileGateway.update(file));
+        if (validation.hasError())
+            throw new RuntimeException("Cannot write chunk data: " + validation.getErrors().toString());
 
     }
 

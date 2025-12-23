@@ -2,7 +2,8 @@ package com.arqivame.storage.domain.file;
 
 public enum ChunkStatus {
     PENDING,
-    WRITING,
+    READY,
     WRITTEN,
-    FAILED
+    FAILED,
+    ABANDONED
 }

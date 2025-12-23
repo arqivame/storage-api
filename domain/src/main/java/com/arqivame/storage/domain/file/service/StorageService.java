@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.Objects;
 
 import com.arqivame.storage.domain.file.Checksum;
-import com.arqivame.storage.domain.file.ChunkID;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
 
@@ -33,7 +32,6 @@ public interface StorageService {
         public static StorageKey from(
                 final FileID file,
                 final UploadSessionID session,
-                final ChunkID chunk,
                 final Long chunkIndex) {
 
             return new StorageKey(
@@ -43,6 +41,7 @@ public interface StorageService {
                             "uploads",
                             session.getStringValue(),
                             "chunks",
+                            "index",
                             chunkIndex.toString()
                     });
         }

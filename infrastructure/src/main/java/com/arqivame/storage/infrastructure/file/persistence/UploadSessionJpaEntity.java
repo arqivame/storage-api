@@ -20,6 +20,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity(name = "UploadSession")
 @Table(name = "upload_sessions")
@@ -56,6 +57,9 @@ public class UploadSessionJpaEntity {
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private FileJpaEntity file;
 
+    @Version
+    private Long version;
+
     public UploadSessionJpaEntity() {
     }
 
@@ -69,7 +73,8 @@ public class UploadSessionJpaEntity {
             final Long totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
-            final FileJpaEntity file) {
+            final FileJpaEntity file,
+            final Long version) {
         this.id = id;
         this.status = status;
         this.createdAt = createdAt;
@@ -80,6 +85,7 @@ public class UploadSessionJpaEntity {
         this.chunkSize = chunkSize;
         this.lastChunkSize = lastChunkSize;
         this.file = file;
+        this.version = version;
     }
 
     public UploadSession toDomain(final Set<Chunk> uploadedChunks) {
@@ -94,7 +100,8 @@ public class UploadSessionJpaEntity {
                 totalChunks,
                 chunkSize,
                 lastChunkSize,
-                uploadedChunks);
+                uploadedChunks,
+                version);
     }
 
     public static UploadSessionJpaEntity fromDomain(final File file, final UploadSession session) {
@@ -108,7 +115,8 @@ public class UploadSessionJpaEntity {
                 session.getTotalChunks(),
                 session.getChunkSize(),
                 session.getLastChunkSize(),
-                FileJpaEntity.fromDomain(file));
+                FileJpaEntity.fromDomain(file),
+                session.getVersion());
     }
 
     public UUID getId() {
@@ -191,6 +199,14 @@ public class UploadSessionJpaEntity {
         this.file = file;
     }
 
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -228,6 +244,7 @@ public class UploadSessionJpaEntity {
                 + ", chunkSize=" + chunkSize
                 + ", lastChunkSize=" + lastChunkSize
                 + ", file=" + file
+                + ", version=" + version
                 + "]";
     }
 

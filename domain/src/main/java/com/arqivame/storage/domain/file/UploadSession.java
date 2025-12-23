@@ -25,6 +25,8 @@ public class UploadSession extends Entity<UploadSessionID> {
     private final Long lastChunkSize;
     private final Set<Chunk> chunks;
 
+    private Long version;
+
     private UploadSession(
             final UploadSessionID id,
             final UploadSessionStatus status,
@@ -36,7 +38,8 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Long totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
-            final Set<Chunk> chunks) {
+            final Set<Chunk> chunks,
+            final Long version) {
         super(id);
         this.status = status;
         this.file = Objects.requireNonNull(file);
@@ -48,6 +51,8 @@ public class UploadSession extends Entity<UploadSessionID> {
         this.chunkSize = chunkSize;
         this.lastChunkSize = lastChunkSize;
         this.chunks = Objects.isNull(chunks) ? new HashSet<>() : new HashSet<>(chunks);
+
+        this.version = version;
     }
 
     public static UploadSession create(
@@ -83,7 +88,8 @@ public class UploadSession extends Entity<UploadSessionID> {
                 totalChunks,
                 chunkSize,
                 lastChunkSize,
-                Set.of());
+                Set.of(),
+                null);
     }
 
     public static UploadSession with(
@@ -97,7 +103,8 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Long totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
-            final Set<Chunk> chunks) {
+            final Set<Chunk> chunks,
+            final Long version) {
         return new UploadSession(
                 id,
                 status,
@@ -109,20 +116,24 @@ public class UploadSession extends Entity<UploadSessionID> {
                 totalChunks,
                 chunkSize,
                 lastChunkSize,
-                chunks);
+                chunks,
+                version);
     }
 
     @Override
-    public void validate(ValidationHandler handler) {
+    public void validate(final ValidationHandler handler) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
     public UploadSession initiateChunkWriting(final Long chunkIndex, final StorageService writer) {
 
+        if (UploadSessionStatus.CANCELED.equals(this.status))
+            throw new RuntimeException("Cannot write chunk to a canceled upload session: " + this.getId().getValue());
+
         final Long writingChunksCount = chunks
                 .stream()
-                .filter(chunk -> chunk.getStatus().equals(ChunkStatus.WRITING))
+                .filter(chunk -> chunk.getStatus().equals(ChunkStatus.READY))
                 .count();
 
         if (writingChunksCount >= maxChunksAtSameTime)
@@ -143,12 +154,17 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Checksum checksumValue,
             final InputStream inputStream) {
 
+        if (UploadSessionStatus.CANCELED.equals(this.status))
+            throw new RuntimeException("Cannot write chunk to a canceled upload session: " + this.getId().getValue());
+
+        final StorageService.StorageKey key = StorageService.StorageKey.from(getFile(), getId(), chunkIndex);
+
         chunks
                 .stream()
                 .filter(chunk -> chunk.getIndex().equals(chunkIndex))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Chunk not found: " + chunkIndex))
-                .write(this, inputStream, checksumValue, maxBytesPerSecondTransferRatePerChunk);
+                .write(key, inputStream, checksumValue, maxBytesPerSecondTransferRatePerChunk);
 
         return this;
     }
@@ -213,6 +229,10 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public Set<Chunk> getChunks() {
         return Set.copyOf(chunks);
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
 }

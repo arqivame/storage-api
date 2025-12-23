@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,6 +19,11 @@ import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSess
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
 import com.arqivame.storage.domain.file.Checksum;
+import com.arqivame.storage.domain.file.FileGateway;
+import com.arqivame.storage.domain.file.FileID;
+import com.arqivame.storage.domain.file.UploadSessionID;
+import com.arqivame.storage.domain.file.UploadSessionStatus;
+import com.arqivame.storage.infrastructure.file.persistence.UploadSessionJpaRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,11 +34,15 @@ public class TestController {
     private final CreateUploadSessionUseCase createUploadSessionUseCase;
     private final WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase;
 
+    private final FileGateway fileGateway;
+
     public TestController(
             CreateUploadSessionUseCase createUploadSessionUseCase,
-            WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase) {
+            WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase,
+            FileGateway fileGateway) {
         this.createUploadSessionUseCase = createUploadSessionUseCase;
         this.writeUploadSessionChunkUseCase = writeUploadSessionChunkUseCase;
+        this.fileGateway = fileGateway;
     }
 
     @PutMapping(value = "{fileId}/sessions/{sessionId}/chunks/{chunkPart}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -60,6 +70,35 @@ public class TestController {
     @PostMapping(path = "sessions")
     public ResponseEntity<Object> createUploadSession(@RequestBody CreateUploadSessionInput input) {
         return ResponseEntity.ok(createUploadSessionUseCase.execute(input));
+    }
+
+    @Transactional
+    @PostMapping("test1")
+    public String post1(@RequestBody UUID sessionId) {
+        // TODO: process POST request
+
+        final var file = fileGateway.findById(FileID.of(UUID.fromString("b9797b22-020b-c698-727e-b0f5d53fb3ef")))
+                .orElseThrow();
+
+        file.cancelUploadSession(UploadSessionID.of(sessionId));
+
+        fileGateway.update(file);
+
+        return sessionId.toString();
+    }
+
+    @PostMapping("test2")
+    public String post2(@RequestBody UUID sessionId) {
+        // TODO: process POST request
+
+        final var file = fileGateway.findById(FileID.of(UUID.fromString("b9797b22-020b-c698-727e-b0f5d53fb3ef")))
+                .orElseThrow();
+
+        file.cancelUploadSession(UploadSessionID.of(sessionId));
+
+        fileGateway.update(file);
+
+        return sessionId.toString();
     }
 
 }

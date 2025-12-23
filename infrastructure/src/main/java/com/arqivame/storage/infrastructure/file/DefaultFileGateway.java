@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.arqivame.storage.domain.file.Chunk;
 import com.arqivame.storage.domain.file.File;
@@ -43,6 +44,7 @@ public class DefaultFileGateway implements FileGateway {
                 .map(fileJpa -> fileJpa.toDomain(findUploadSession(id)));
     }
 
+    @Transactional
     @Override
     public File create(final File file) {
 
@@ -52,6 +54,7 @@ public class DefaultFileGateway implements FileGateway {
         return save(file);
     }
 
+    @Transactional
     @Override
     public File update(final File file) {
 
@@ -63,15 +66,15 @@ public class DefaultFileGateway implements FileGateway {
 
     private File save(final File file) {
 
-        fileJpaRepository
-                .save(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))
+        final File savedFile = fileJpaRepository
+                .saveAndFlush(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))
                 .toDomain(file.getUploadSessions());
 
-        file
+        savedFile
                 .getUploadSessions()
-                .forEach(session -> saveChunks(file, saveUploadSession(file, session)));
+                .forEach(session -> saveChunks(savedFile, saveUploadSession(savedFile, session)));
 
-        return file;
+        return savedFile;
     }
 
     private Set<UploadSession> findUploadSession(final FileID fileId) {
@@ -92,7 +95,7 @@ public class DefaultFileGateway implements FileGateway {
     private UploadSession saveUploadSession(final File file, final UploadSession uploadSession) {
 
         return uploadSessionJpaRepository
-                .save(Objects.requireNonNull(UploadSessionJpaEntity.fromDomain(file, uploadSession)))
+                .saveAndFlush(Objects.requireNonNull(UploadSessionJpaEntity.fromDomain(file, uploadSession)))
                 .toDomain(uploadSession.getChunks());
 
     }
@@ -108,7 +111,7 @@ public class DefaultFileGateway implements FileGateway {
                 .map(chunk -> ChunkJpaEntity.fromDomain(chunk, uploadSession, file))
                 .collect(Collectors.toSet());
 
-        chunkJpaRepository.saveAll(Objects.requireNonNull(chunksJpa));
+        chunkJpaRepository.saveAllAndFlush(Objects.requireNonNull(chunksJpa));
 
         return uploadSession.getChunks();
 

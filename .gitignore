@@ -21,3 +21,5 @@ bin
 
 *.log.gz
 *log.json.gz
+
+/storage/files/**

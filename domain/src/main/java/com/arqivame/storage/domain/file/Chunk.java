@@ -72,25 +72,21 @@ public class Chunk extends Entity<ChunkID> {
         if (Objects.isNull(writer))
             throw new IllegalArgumentException("Writer cannot be null");
 
-        this.status = ChunkStatus.WRITING;
+        this.status = ChunkStatus.READY;
         this.writer = Optional.ofNullable(writer);
         return this;
     }
 
     public Chunk write(
-            final UploadSession session,
+            final StorageService.StorageKey key,
             final InputStream inputStream,
             final Checksum checksumValue,
             final Long bytesPerSecondsWrittenRate) {
 
-        if (writer.isEmpty())
-            throw new RuntimeException("No writer available for this chunk");
-
-        final StorageService.StorageKey key = StorageService.StorageKey.from(
-                session.getFile(),
-                session.getId(),
-                this.getId(),
-                this.index);
+        if (writer.isEmpty()) {
+            this.status = ChunkStatus.FAILED;
+            throw new IllegalStateException("Chunk writer is not assigned");
+        }
 
         final Checksum streamChecksumValue = writer
                 .get()
