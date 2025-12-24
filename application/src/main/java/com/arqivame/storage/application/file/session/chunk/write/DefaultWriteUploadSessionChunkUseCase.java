@@ -39,16 +39,54 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
         final Checksum checksumValue = Checksum.from(input.checksumValue(), input.checksumAlgorithm());
         final InputStream chunkData = input.chunkData();
 
-        final File file = fileGateway
-                .findById(fileId)
-                .orElseThrow(() -> new RuntimeException("File not found: " + input.fileId()));
-
         final ValidationHandler validation = Notification.create();
+
+        prepareForChunkWriting(
+                validation,
+                fileId,
+                sessionId,
+                chunkIndex);
+
+        writeChunk(
+                validation,
+                fileId,
+                sessionId,
+                chunkIndex,
+                checksumValue,
+                chunkData);
+
+    }
+
+    private File findFileById(final FileID fileId) {
+        return fileGateway
+                .findById(fileId)
+                .orElseThrow(() -> new RuntimeException("File not found: " + fileId.getValue()));
+    }
+
+    private void prepareForChunkWriting(
+            final ValidationHandler validation,
+            final FileID fileId,
+            final UploadSessionID sessionId,
+            final Long chunkIndex) {
+
+        final File file = findFileById(fileId);
 
         validation.validate(() -> file.initiateChunkWriting(sessionId, chunkIndex, storageService));
         eventDispatcher.notify(fileGateway.update(file));
         if (validation.hasError())
             throw new RuntimeException("Cannot initiate chunk writing: " + validation.getErrors().toString());
+
+    }
+
+    private void writeChunk(
+            final ValidationHandler validation,
+            final FileID fileId,
+            final UploadSessionID sessionId,
+            final Long chunkIndex,
+            final Checksum checksumValue,
+            final InputStream chunkData) {
+
+        final File file = findFileById(fileId);
 
         validation.validate(() -> file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData));
         eventDispatcher.notify(fileGateway.update(file));
