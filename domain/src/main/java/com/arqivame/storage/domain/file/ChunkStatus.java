@@ -5,5 +5,6 @@ public enum ChunkStatus {
     READY,
     WRITTEN,
     FAILED,
-    ABANDONED
+    ABANDONED,
+    DELETED
 }

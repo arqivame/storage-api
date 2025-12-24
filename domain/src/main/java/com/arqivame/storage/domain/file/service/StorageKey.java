@@ -44,6 +44,9 @@ public final class StorageKey {
         return new StorageKey(segments);
     }
 
+    // TODO talvez adicionar "storage(type)(info)" para ter N tipos de storage
+    // ex: local, s3, gcs, azure, etc
+
     public String getFullKey() {
         return String.join(SEGMENT_SEPARATOR, segments);
     }

@@ -4,5 +4,6 @@ public enum UploadSessionStatus {
     ACTIVE,
     CANCELED,
     PROCESSING,
-    COMPLETED
+    COMPLETED,
+    DELETED
 }

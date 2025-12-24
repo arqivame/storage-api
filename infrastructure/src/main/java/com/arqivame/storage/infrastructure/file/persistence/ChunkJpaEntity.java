@@ -44,6 +44,9 @@ public class ChunkJpaEntity {
     @Column(name = "storage_key")
     private String storageKey;
 
+    @Column(name = "waiting_for_deletion", nullable = false)
+    private Boolean waitingForDeletion;
+
     @Column(name = "written_at")
     private Instant writtenAt;
 
@@ -63,6 +66,7 @@ public class ChunkJpaEntity {
             final Long size,
             final ChunkStatus status,
             final String storageKey,
+            final Boolean waitingForDeletion,
             final Instant writtenAt,
             final Optional<StorageWriter> writer,
             final UploadSessionJpaEntity session) {
@@ -71,6 +75,7 @@ public class ChunkJpaEntity {
         this.size = size;
         this.status = status;
         this.storageKey = storageKey;
+        this.waitingForDeletion = waitingForDeletion;
         this.writtenAt = writtenAt;
         this.writer = writer;
         this.session = session;
@@ -86,6 +91,7 @@ public class ChunkJpaEntity {
                 chunk.getSize(),
                 chunk.getStatus(),
                 chunk.getStorageKey().map(StorageKey::getFullKey).orElse(null),
+                chunk.getWaitingForDeletion(),
                 chunk.getWrittenAt(),
                 chunk.getWriter(),
                 UploadSessionJpaEntity.fromDomain(file, session));
@@ -98,6 +104,7 @@ public class ChunkJpaEntity {
                 size,
                 status,
                 Objects.isNull(storageKey) ? null : StorageKey.of(storageKey),
+                waitingForDeletion,
                 writtenAt,
                 Objects.isNull(writer) ? null : writer.orElse(null));
     }
@@ -140,6 +147,14 @@ public class ChunkJpaEntity {
 
     public void setStorageKey(String storageKey) {
         this.storageKey = storageKey;
+    }
+
+    public Boolean getWaitingForDeletion() {
+        return waitingForDeletion;
+    }
+
+    public void setWaitingForDeletion(Boolean waitingForDeletion) {
+        this.waitingForDeletion = waitingForDeletion;
     }
 
     public Instant getWrittenAt() {
@@ -198,6 +213,7 @@ public class ChunkJpaEntity {
                 + ", size=" + size
                 + ", status=" + status
                 + ", storageKey=" + storageKey
+                + ", waitingForDeletion=" + waitingForDeletion
                 + ", writtenAt=" + writtenAt
                 + ", session=" + session
                 + "]";

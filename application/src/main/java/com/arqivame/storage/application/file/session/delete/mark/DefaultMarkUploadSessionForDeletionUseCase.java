@@ -1,4 +1,4 @@
-package com.arqivame.storage.application.file.session.delete;
+package com.arqivame.storage.application.file.session.delete.mark;
 
 import java.util.Objects;
 
@@ -7,27 +7,22 @@ import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
-import com.arqivame.storage.domain.file.service.StorageService;
 
-public class DefaultDeleteUploadSessionUseCase extends DeleteUploadSessionUseCase {
+public class DefaultMarkUploadSessionForDeletionUseCase extends MarkUploadSessionForDeletionUseCase {
 
     private final EventDispatcher eventDispatcher;
 
     private final FileGateway fileGateway;
 
-    private final StorageService storageService;
-
-    public DefaultDeleteUploadSessionUseCase(
+    public DefaultMarkUploadSessionForDeletionUseCase(
             final EventDispatcher eventDispatcher,
-            final FileGateway fileGateway,
-            final StorageService storageService) {
+            final FileGateway fileGateway) {
         this.eventDispatcher = Objects.requireNonNull(eventDispatcher);
         this.fileGateway = Objects.requireNonNull(fileGateway);
-        this.storageService = Objects.requireNonNull(storageService);
     }
 
     @Override
-    public void execute(final DeleteUploadSessionUseCaseInput input) {
+    public void execute(final MarkUploadSessionForDeletionInput input) {
 
         final FileID fileId = FileID.of(input.fileId());
         final UploadSessionID uploadSessionId = UploadSessionID.of(input.uploadSessionId());
@@ -36,7 +31,7 @@ public class DefaultDeleteUploadSessionUseCase extends DeleteUploadSessionUseCas
                 .findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found: " + input.fileId()));
 
-        file.deleteUploadSession(uploadSessionId);
+        eventDispatcher.notify(fileGateway.update(file.markUploadSessionForDeletion(uploadSessionId)));
 
     }
 

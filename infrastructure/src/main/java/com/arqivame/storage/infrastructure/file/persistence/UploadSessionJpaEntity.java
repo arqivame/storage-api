@@ -54,6 +54,9 @@ public class UploadSessionJpaEntity {
     @Column(name = "last_chunk_size", nullable = false)
     private Long lastChunkSize;
 
+    @Column(name = "waiting_for_deletion", nullable = false)
+    private Boolean waitingForDeletion;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     private FileJpaEntity file;
 
@@ -73,6 +76,7 @@ public class UploadSessionJpaEntity {
             final Long totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
+            final Boolean waitingForDeletion,
             final FileJpaEntity file,
             final Long version) {
         this.id = id;
@@ -84,6 +88,7 @@ public class UploadSessionJpaEntity {
         this.totalChunks = totalChunks;
         this.chunkSize = chunkSize;
         this.lastChunkSize = lastChunkSize;
+        this.waitingForDeletion = waitingForDeletion;
         this.file = file;
         this.version = version;
     }
@@ -101,6 +106,7 @@ public class UploadSessionJpaEntity {
                 chunkSize,
                 lastChunkSize,
                 uploadedChunks,
+                waitingForDeletion,
                 version);
     }
 
@@ -115,6 +121,7 @@ public class UploadSessionJpaEntity {
                 session.getTotalChunks(),
                 session.getChunkSize(),
                 session.getLastChunkSize(),
+                session.getWaitingForDeletion(),
                 FileJpaEntity.fromDomain(file),
                 session.getVersion());
     }
@@ -191,6 +198,14 @@ public class UploadSessionJpaEntity {
         this.lastChunkSize = lastChunkSize;
     }
 
+    public Boolean getWaitingForDeletion() {
+        return waitingForDeletion;
+    }
+
+    public void setWaitingForDeletion(Boolean waitingForDeletion) {
+        this.waitingForDeletion = waitingForDeletion;
+    }
+
     public FileJpaEntity getFile() {
         return file;
     }
@@ -243,6 +258,7 @@ public class UploadSessionJpaEntity {
                 + ", totalChunks=" + totalChunks
                 + ", chunkSize=" + chunkSize
                 + ", lastChunkSize=" + lastChunkSize
+                + ", waitingForDeletion=" + waitingForDeletion
                 + ", file=" + file
                 + ", version=" + version
                 + "]";

@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
@@ -16,6 +17,7 @@ public class Chunk extends Entity<ChunkID> {
     private final Long size;
     private ChunkStatus status;
     private StorageKey storageKey;
+    private Boolean waitingForDeletion;
 
     // TODO precisa? validar
     private Instant writtenAt;
@@ -28,6 +30,7 @@ public class Chunk extends Entity<ChunkID> {
             final Long size,
             final ChunkStatus status,
             final StorageKey storageKey,
+            final Boolean waitingForDeletion,
             final Instant writtenAt,
             final StorageWriter writer) {
         super(id);
@@ -46,6 +49,7 @@ public class Chunk extends Entity<ChunkID> {
                 size,
                 ChunkStatus.PENDING,
                 null,
+                false,
                 null,
                 null);
     }
@@ -56,6 +60,7 @@ public class Chunk extends Entity<ChunkID> {
             final Long size,
             final ChunkStatus status,
             final StorageKey storageKey,
+            final Boolean waitingForDeletion,
             final Instant writtenAt,
             final StorageWriter writer) {
         return new Chunk(
@@ -64,6 +69,7 @@ public class Chunk extends Entity<ChunkID> {
                 size,
                 status,
                 storageKey,
+                waitingForDeletion,
                 writtenAt,
                 writer);
     }
@@ -75,6 +81,10 @@ public class Chunk extends Entity<ChunkID> {
     }
 
     public Chunk assignWriter(final StorageWriter writer) {
+
+        if (waitingForDeletion)
+            throw new RuntimeException(
+                    "Cannot assign writer to a chunk marked for deletion: " + this.getId().getValue());
 
         if (Objects.isNull(writer))
             throw new IllegalArgumentException("Writer cannot be null");
@@ -89,6 +99,10 @@ public class Chunk extends Entity<ChunkID> {
             final InputStream inputStream,
             final Checksum checksumValue,
             final Long bytesPerSecondsWrittenRate) {
+
+        if (waitingForDeletion)
+            throw new RuntimeException(
+                    "Cannot write a chunk marked for deletion: " + this.getId().getValue());
 
         if (writer.isEmpty()) {
             this.status = ChunkStatus.FAILED;
@@ -116,6 +130,24 @@ public class Chunk extends Entity<ChunkID> {
         return this;
     }
 
+    public void markForDeletion() {
+
+        waitingForDeletion = true;
+
+        if (ChunkStatus.PENDING.equals(this.status) || ChunkStatus.READY.equals(this.status))
+            this.status = ChunkStatus.ABANDONED;
+
+    }
+
+    public void physicallyDelete(final StorageDeleter storageDeleter) {
+
+        if (Objects.isNull(storageKey))
+            return;
+
+        storageDeleter.delete(storageKey);
+        this.status = ChunkStatus.DELETED;
+    }
+
     public Long getIndex() {
         return index;
     }
@@ -130,6 +162,10 @@ public class Chunk extends Entity<ChunkID> {
 
     public Optional<StorageKey> getStorageKey() {
         return Optional.ofNullable(storageKey);
+    }
+
+    public Boolean getWaitingForDeletion() {
+        return waitingForDeletion;
     }
 
     public Instant getWrittenAt() {

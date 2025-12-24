@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
@@ -25,6 +26,7 @@ public class UploadSession extends Entity<UploadSessionID> {
     private final Long chunkSize;
     private final Long lastChunkSize;
     private final Set<Chunk> chunks;
+    private Boolean waitingForDeletion;
 
     private Long version;
 
@@ -40,6 +42,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Long chunkSize,
             final Long lastChunkSize,
             final Set<Chunk> chunks,
+            final Boolean waitingForDeletion,
             final Long version) {
         super(id);
         this.status = status;
@@ -52,6 +55,7 @@ public class UploadSession extends Entity<UploadSessionID> {
         this.chunkSize = chunkSize;
         this.lastChunkSize = lastChunkSize;
         this.chunks = Objects.isNull(chunks) ? new HashSet<>() : new HashSet<>(chunks);
+        this.waitingForDeletion = waitingForDeletion;
 
         this.version = version;
     }
@@ -90,6 +94,7 @@ public class UploadSession extends Entity<UploadSessionID> {
                 chunkSize,
                 lastChunkSize,
                 Set.of(),
+                false,
                 null);
     }
 
@@ -105,6 +110,7 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Long chunkSize,
             final Long lastChunkSize,
             final Set<Chunk> chunks,
+            final Boolean waitingForDeletion,
             final Long version) {
         return new UploadSession(
                 id,
@@ -118,6 +124,7 @@ public class UploadSession extends Entity<UploadSessionID> {
                 chunkSize,
                 lastChunkSize,
                 chunks,
+                waitingForDeletion,
                 version);
     }
 
@@ -175,6 +182,33 @@ public class UploadSession extends Entity<UploadSessionID> {
         return this;
     }
 
+    public void markForDeletion() {
+
+        // TODO validar essa regra de negocio
+        if (UploadSessionStatus.ACTIVE.equals(this.status))
+            throw new IllegalStateException(
+                    "Cannot mark an active upload session for deletion: " + this.getId().getValue());
+
+        if (UploadSessionStatus.PROCESSING.equals(this.status))
+            throw new IllegalStateException(
+                    "Cannot mark a processing upload session for deletion: " + this.getId().getValue());
+
+        chunks.forEach(Chunk::markForDeletion);
+
+        waitingForDeletion = true;
+    }
+
+    public void physicallyDeleteChunks(final StorageDeleter storageDeleter) {
+
+        chunks
+                .stream()
+                .filter(Chunk::getWaitingForDeletion)
+                .forEach(chunk -> chunk.physicallyDelete(storageDeleter));
+
+        this.status = UploadSessionStatus.DELETED;
+
+    }
+
     private Chunk createChunk(final Long index) {
 
         if (index < 0 || index >= totalChunks)
@@ -230,6 +264,10 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     public Set<Chunk> getChunks() {
         return Set.copyOf(chunks);
+    }
+
+    public Boolean getWaitingForDeletion() {
+        return waitingForDeletion;
     }
 
     public Long getVersion() {
