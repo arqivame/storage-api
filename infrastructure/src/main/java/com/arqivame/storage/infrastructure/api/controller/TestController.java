@@ -21,9 +21,6 @@ import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSess
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
 import com.arqivame.storage.domain.file.Checksum;
-import com.arqivame.storage.domain.file.FileGateway;
-import com.arqivame.storage.domain.file.FileID;
-import com.arqivame.storage.domain.file.UploadSessionID;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -35,17 +32,13 @@ public class TestController {
     private final WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase;
     private final CancelUploadSessionUseCase cancelUploadSessionUseCase;
 
-    private final FileGateway fileGateway;
-
     public TestController(
             CreateUploadSessionUseCase createUploadSessionUseCase,
             WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase,
-            CancelUploadSessionUseCase cancelUploadSessionUseCase,
-            FileGateway fileGateway) {
+            CancelUploadSessionUseCase cancelUploadSessionUseCase) {
         this.createUploadSessionUseCase = createUploadSessionUseCase;
         this.writeUploadSessionChunkUseCase = writeUploadSessionChunkUseCase;
         this.cancelUploadSessionUseCase = cancelUploadSessionUseCase;
-        this.fileGateway = fileGateway;
     }
 
     @PutMapping(value = "{fileId}/sessions/{sessionId}/chunks/{chunkPart}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)

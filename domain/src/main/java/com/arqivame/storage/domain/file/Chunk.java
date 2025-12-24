@@ -38,6 +38,7 @@ public class Chunk extends Entity<ChunkID> {
         this.size = size;
         this.status = status;
         this.storageKey = storageKey;
+        this.waitingForDeletion = waitingForDeletion;
         this.writtenAt = writtenAt;
         this.writer = Optional.ofNullable(writer);
     }

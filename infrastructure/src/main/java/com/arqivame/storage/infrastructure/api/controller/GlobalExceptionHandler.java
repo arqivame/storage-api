@@ -19,12 +19,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = InternalErrorException.class)
     public ResponseEntity<ApiError> handle(final InternalErrorException ex) {
-        return ResponseEntity.unprocessableEntity().body(ApiError.with("Internal Server Error"));
+        return ResponseEntity.unprocessableContent().body(ApiError.with("Internal Server Error"));
     }
 
     @ExceptionHandler(value = DomainException.class)
     public ResponseEntity<ApiError> handle(final DomainException ex) {
-        return ResponseEntity.unprocessableEntity().body(ApiError.from(ex));
+        return ResponseEntity.unprocessableContent().body(ApiError.from(ex));
     }
 
     @ExceptionHandler(value = NotFoundException.class)
