@@ -2,6 +2,7 @@ package com.arqivame.storage.domain.event;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Set;
 
 public abstract class Event<D extends Serializable> implements Serializable {
@@ -19,17 +20,17 @@ public abstract class Event<D extends Serializable> implements Serializable {
     private final D data;
 
     public Event(
-            String entity,
-            String action,
-            String version,
-            Instant occurredAt,
-            Set<EventEntity> relatedEntities,
-            D data) {
+            final String entity,
+            final String action,
+            final String version,
+            final Instant occurredAt,
+            final Set<EventEntity> relatedEntities,
+            final D data) {
         this.entity = entity;
         this.action = action;
         this.version = version;
         this.occurredAt = occurredAt;
-        this.relatedEntities = relatedEntities == null ? Set.of() : Set.copyOf(relatedEntities);
+        this.relatedEntities = Objects.isNull(relatedEntities) ? Set.of() : Set.copyOf(relatedEntities);
         this.data = data;
     }
 
@@ -62,7 +63,7 @@ public abstract class Event<D extends Serializable> implements Serializable {
     }
 
     public Set<EventEntity> getRelatedEntities() {
-        return relatedEntities;
+        return Set.copyOf(relatedEntities);
     }
 
     public D getData() {
