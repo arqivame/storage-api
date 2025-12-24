@@ -5,6 +5,8 @@ import java.util.Objects;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.arqivame.storage.application.file.session.cancel.CancelUploadSessionUseCase;
+import com.arqivame.storage.application.file.session.cancel.DefaultCancelUploadSessionUseCase;
 import com.arqivame.storage.application.file.session.chunk.write.DefaultWriteUploadSessionChunkUseCase;
 import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkUseCase;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
@@ -45,6 +47,13 @@ public class FileUseCaseConfig {
                 eventDispatcher,
                 fileGateway,
                 storageService);
+    }
+
+    @Bean
+    CancelUploadSessionUseCase cancelUploadSessionUseCase() {
+        return new DefaultCancelUploadSessionUseCase(
+                eventDispatcher,
+                fileGateway);
     }
 
 }

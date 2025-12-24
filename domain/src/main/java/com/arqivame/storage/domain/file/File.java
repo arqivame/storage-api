@@ -141,7 +141,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 .stream()
                 .filter(session -> session.getId().equals(sessionId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No open upload session with ID: " + sessionId));
+                .orElseThrow(() -> new RuntimeException("No upload session with ID: " + sessionId));
     }
 
     public Checksum getChecksum() {
