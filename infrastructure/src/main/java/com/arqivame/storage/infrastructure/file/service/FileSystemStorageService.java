@@ -4,13 +4,16 @@ import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.bound
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.digestible;
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.throttled;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Objects;
 
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.Checksum.Algorithm;
+import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageService;
 import com.arqivame.storage.infrastructure.commons.FileSystemUtils;
 import com.arqivame.storage.infrastructure.commons.MessageDigestUtils;
@@ -22,6 +25,20 @@ public class FileSystemStorageService implements StorageService {
 
     public FileSystemStorageService(final Path rootLocation) {
         this.rootLocation = Objects.requireNonNull(rootLocation);
+    }
+
+    @Override
+    public void delete(final StorageKey key) {
+
+        final String fullKey = key.getFullKey();
+        final Path sessionLocation = rootLocation.resolve(fullKey);
+
+        try {
+            Files.delete(sessionLocation);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete storage key: " + fullKey, e);
+        }
+
     }
 
     @Override

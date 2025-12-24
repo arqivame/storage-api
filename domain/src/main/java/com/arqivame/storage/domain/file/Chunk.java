@@ -6,7 +6,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.arqivame.storage.domain.Entity;
-import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.file.service.StorageKey;
+import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class Chunk extends Entity<ChunkID> {
@@ -14,23 +15,26 @@ public class Chunk extends Entity<ChunkID> {
     private final Long index;
     private final Long size;
     private ChunkStatus status;
+    private StorageKey storageKey;
 
     // TODO precisa? validar
     private Instant writtenAt;
 
-    private Optional<StorageService> writer;
+    private Optional<StorageWriter> writer;
 
     private Chunk(
             final ChunkID id,
             final Long index,
             final Long size,
             final ChunkStatus status,
+            final StorageKey storageKey,
             final Instant writtenAt,
-            final StorageService writer) {
+            final StorageWriter writer) {
         super(id);
         this.index = index;
         this.size = size;
         this.status = status;
+        this.storageKey = storageKey;
         this.writtenAt = writtenAt;
         this.writer = Optional.ofNullable(writer);
     }
@@ -42,6 +46,7 @@ public class Chunk extends Entity<ChunkID> {
                 size,
                 ChunkStatus.PENDING,
                 null,
+                null,
                 null);
     }
 
@@ -50,13 +55,15 @@ public class Chunk extends Entity<ChunkID> {
             final Long index,
             final Long size,
             final ChunkStatus status,
+            final StorageKey storageKey,
             final Instant writtenAt,
-            final StorageService writer) {
+            final StorageWriter writer) {
         return new Chunk(
                 id,
                 index,
                 size,
                 status,
+                storageKey,
                 writtenAt,
                 writer);
     }
@@ -67,7 +74,7 @@ public class Chunk extends Entity<ChunkID> {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
-    public Chunk assignWriter(final StorageService writer) {
+    public Chunk assignWriter(final StorageWriter writer) {
 
         if (Objects.isNull(writer))
             throw new IllegalArgumentException("Writer cannot be null");
@@ -78,7 +85,7 @@ public class Chunk extends Entity<ChunkID> {
     }
 
     public Chunk write(
-            final StorageService.StorageKey key,
+            final StorageKey key,
             final InputStream inputStream,
             final Checksum checksumValue,
             final Long bytesPerSecondsWrittenRate) {
@@ -103,6 +110,7 @@ public class Chunk extends Entity<ChunkID> {
         }
 
         this.status = ChunkStatus.WRITTEN;
+        this.storageKey = key;
         this.writtenAt = Instant.now();
 
         return this;
@@ -120,11 +128,15 @@ public class Chunk extends Entity<ChunkID> {
         return status;
     }
 
+    public Optional<StorageKey> getStorageKey() {
+        return Optional.ofNullable(storageKey);
+    }
+
     public Instant getWrittenAt() {
         return writtenAt;
     }
 
-    public Optional<StorageService> getWriter() {
+    public Optional<StorageWriter> getWriter() {
         return writer;
     }
 

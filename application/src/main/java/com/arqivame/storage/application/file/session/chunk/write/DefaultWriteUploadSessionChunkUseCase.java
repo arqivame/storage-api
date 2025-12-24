@@ -9,7 +9,7 @@ import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
-import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 import com.arqivame.storage.domain.validation.handler.Notification;
 
@@ -19,12 +19,12 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
     private final FileGateway fileGateway;
 
-    private final StorageService storageService;
+    private final StorageWriter storageService;
 
     public DefaultWriteUploadSessionChunkUseCase(
             final EventDispatcher eventDispatcher,
             final FileGateway fileGateway,
-            final StorageService storageService) {
+            final StorageWriter storageService) {
         this.eventDispatcher = Objects.requireNonNull(eventDispatcher);
         this.fileGateway = Objects.requireNonNull(fileGateway);
         this.storageService = Objects.requireNonNull(storageService);

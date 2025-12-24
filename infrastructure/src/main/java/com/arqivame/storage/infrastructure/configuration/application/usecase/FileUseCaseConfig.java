@@ -13,20 +13,20 @@ import com.arqivame.storage.application.file.session.create.CreateUploadSessionU
 import com.arqivame.storage.application.file.session.create.DefaultCreateUploadSessionUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
-import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.file.service.StorageWriter;
 
 @Configuration
 public class FileUseCaseConfig {
 
     private final FileGateway fileGateway;
 
-    private final StorageService storageService;
+    private final StorageWriter storageService;
 
     private final EventDispatcher eventDispatcher;
 
     public FileUseCaseConfig(
             final FileGateway fileGateway,
-            final StorageService storageService,
+            final StorageWriter storageService,
             final EventDispatcher eventDispatcher) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
         this.storageService = Objects.requireNonNull(storageService);

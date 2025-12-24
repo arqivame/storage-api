@@ -13,7 +13,7 @@ import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
-import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class File extends AggregateRoot<FileID> implements EventSource {
@@ -106,10 +106,14 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     }
 
+    public void deleteUploadSession(final UploadSessionID sessionId) {
+        // uploadSessions.removeIf(session -> session.getId().equals(sessionId));
+    }
+
     public File initiateChunkWriting(
             final UploadSessionID sessionId,
             final Long chunkIndex,
-            final StorageService writer) {
+            final StorageWriter writer) {
 
         fetchUploadSessionById(sessionId).initiateChunkWriting(chunkIndex, writer);
 

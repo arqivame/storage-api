@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.arqivame.storage.application.file.session.cancel.CancelUploadSessionUseCase;
+import com.arqivame.storage.application.file.session.cancel.CancelUploadSessionUseCaseInput;
 import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkInput;
 import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkUseCase;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
@@ -22,26 +24,27 @@ import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
-import com.arqivame.storage.domain.file.UploadSessionStatus;
-import com.arqivame.storage.infrastructure.file.persistence.UploadSessionJpaRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("test")
+@RequestMapping("test/files")
 public class TestController {
 
     private final CreateUploadSessionUseCase createUploadSessionUseCase;
     private final WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase;
+    private final CancelUploadSessionUseCase cancelUploadSessionUseCase;
 
     private final FileGateway fileGateway;
 
     public TestController(
             CreateUploadSessionUseCase createUploadSessionUseCase,
             WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase,
+            CancelUploadSessionUseCase cancelUploadSessionUseCase,
             FileGateway fileGateway) {
         this.createUploadSessionUseCase = createUploadSessionUseCase;
         this.writeUploadSessionChunkUseCase = writeUploadSessionChunkUseCase;
+        this.cancelUploadSessionUseCase = cancelUploadSessionUseCase;
         this.fileGateway = fileGateway;
     }
 
@@ -73,32 +76,12 @@ public class TestController {
     }
 
     @Transactional
-    @PostMapping("test1")
-    public String post1(@RequestBody UUID sessionId) {
-        // TODO: process POST request
+    @PostMapping("sessions/cancel")
+    public ResponseEntity<Void> cancel(@RequestBody CancelUploadSessionUseCaseInput input) {
 
-        final var file = fileGateway.findById(FileID.of(UUID.fromString("b9797b22-020b-c698-727e-b0f5d53fb3ef")))
-                .orElseThrow();
+        cancelUploadSessionUseCase.execute(input);
 
-        file.cancelUploadSession(UploadSessionID.of(sessionId));
-
-        fileGateway.update(file);
-
-        return sessionId.toString();
-    }
-
-    @PostMapping("test2")
-    public String post2(@RequestBody UUID sessionId) {
-        // TODO: process POST request
-
-        final var file = fileGateway.findById(FileID.of(UUID.fromString("b9797b22-020b-c698-727e-b0f5d53fb3ef")))
-                .orElseThrow();
-
-        file.cancelUploadSession(UploadSessionID.of(sessionId));
-
-        fileGateway.update(file);
-
-        return sessionId.toString();
+        return ResponseEntity.ok().build();
     }
 
 }

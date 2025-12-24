@@ -8,7 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.arqivame.storage.domain.Entity;
-import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.file.service.StorageKey;
+import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 
 public class UploadSession extends Entity<UploadSessionID> {
@@ -126,7 +127,7 @@ public class UploadSession extends Entity<UploadSessionID> {
         throw new UnsupportedOperationException("Unimplemented method 'validate'");
     }
 
-    public UploadSession initiateChunkWriting(final Long chunkIndex, final StorageService writer) {
+    public UploadSession initiateChunkWriting(final Long chunkIndex, final StorageWriter writer) {
 
         if (UploadSessionStatus.CANCELED.equals(this.status))
             throw new RuntimeException("Cannot write chunk to a canceled upload session: " + this.getId().getValue());
@@ -157,7 +158,7 @@ public class UploadSession extends Entity<UploadSessionID> {
         if (UploadSessionStatus.CANCELED.equals(this.status))
             throw new RuntimeException("Cannot write chunk to a canceled upload session: " + this.getId().getValue());
 
-        final StorageService.StorageKey key = StorageService.StorageKey.from(getFile(), getId(), chunkIndex);
+        final StorageKey key = StorageKey.from(getFile(), getId(), chunkIndex);
 
         chunks
                 .stream()

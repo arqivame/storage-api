@@ -10,7 +10,8 @@ import com.arqivame.storage.domain.file.ChunkID;
 import com.arqivame.storage.domain.file.ChunkStatus;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
-import com.arqivame.storage.domain.file.service.StorageService;
+import com.arqivame.storage.domain.file.service.StorageKey;
+import com.arqivame.storage.domain.file.service.StorageWriter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,11 +41,14 @@ public class ChunkJpaEntity {
     @Column(name = "status", nullable = false)
     private ChunkStatus status;
 
+    @Column(name = "storage_key")
+    private String storageKey;
+
     @Column(name = "written_at")
     private Instant writtenAt;
 
     @Transient
-    private Optional<StorageService> writer;
+    private Optional<StorageWriter> writer;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", updatable = false)
@@ -58,13 +62,15 @@ public class ChunkJpaEntity {
             final Long index,
             final Long size,
             final ChunkStatus status,
+            final String storageKey,
             final Instant writtenAt,
-            final Optional<StorageService> writer,
+            final Optional<StorageWriter> writer,
             final UploadSessionJpaEntity session) {
         this.id = id;
         this.index = index;
         this.size = size;
         this.status = status;
+        this.storageKey = storageKey;
         this.writtenAt = writtenAt;
         this.writer = writer;
         this.session = session;
@@ -79,6 +85,7 @@ public class ChunkJpaEntity {
                 chunk.getIndex(),
                 chunk.getSize(),
                 chunk.getStatus(),
+                chunk.getStorageKey().map(StorageKey::getFullKey).orElse(null),
                 chunk.getWrittenAt(),
                 chunk.getWriter(),
                 UploadSessionJpaEntity.fromDomain(file, session));
@@ -90,6 +97,7 @@ public class ChunkJpaEntity {
                 index,
                 size,
                 status,
+                Objects.isNull(storageKey) ? null : StorageKey.of(storageKey),
                 writtenAt,
                 Objects.isNull(writer) ? null : writer.orElse(null));
     }
@@ -126,6 +134,14 @@ public class ChunkJpaEntity {
         this.status = status;
     }
 
+    public String getStorageKey() {
+        return storageKey;
+    }
+
+    public void setStorageKey(String storageKey) {
+        this.storageKey = storageKey;
+    }
+
     public Instant getWrittenAt() {
         return writtenAt;
     }
@@ -134,11 +150,11 @@ public class ChunkJpaEntity {
         this.writtenAt = writtenAt;
     }
 
-    public Optional<StorageService> getWriter() {
+    public Optional<StorageWriter> getWriter() {
         return writer;
     }
 
-    public void setWriter(Optional<StorageService> writer) {
+    public void setWriter(Optional<StorageWriter> writer) {
         this.writer = writer;
     }
 
@@ -181,6 +197,7 @@ public class ChunkJpaEntity {
                 + ", index=" + index
                 + ", size=" + size
                 + ", status=" + status
+                + ", storageKey=" + storageKey
                 + ", writtenAt=" + writtenAt
                 + ", session=" + session
                 + "]";
