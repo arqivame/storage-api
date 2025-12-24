@@ -13,6 +13,7 @@ import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
+import com.arqivame.storage.domain.file.event.FileUploadSessionChunksPhysicallyDeletedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageWriter;
@@ -123,7 +124,11 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File physicallyDeleteUploadSession(final UploadSessionID sessionId, final StorageDeleter storageDeleter) {
 
-        fetchUploadSessionById(sessionId).physicallyDeleteChunks(storageDeleter);
+        final UploadSession uploadSession = fetchUploadSessionById(sessionId);
+
+        uploadSession.physicallyDeleteChunks(storageDeleter);
+
+        events.add(FileUploadSessionChunksPhysicallyDeletedEvent.create(this, uploadSession));
 
         return this;
     }
