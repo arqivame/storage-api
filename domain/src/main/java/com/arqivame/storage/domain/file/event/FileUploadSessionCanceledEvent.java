@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,12 +32,12 @@ public class FileUploadSessionCanceledEvent extends Event<FileUploadSessionCance
         super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
     }
 
-    public record Data(String fileId, String sessionId, Instant closedAt) implements Serializable {
+    public record Data(UUID fileId, UUID sessionId, Instant closedAt) implements Serializable {
 
         public static Data of(final File file, final UploadSession session) {
             return new Data(
-                    file.getId().getStringValue(),
-                    session.getId().getStringValue(),
+                    file.getId().getValue(),
+                    session.getId().getValue(),
                     Instant.now());
         }
 

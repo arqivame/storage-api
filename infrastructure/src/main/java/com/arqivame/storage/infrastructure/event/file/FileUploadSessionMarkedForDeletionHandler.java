@@ -9,12 +9,13 @@ import com.arqivame.storage.domain.event.EventHandler;
 import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent.Data;
 
-public class FileUploadSessionMarkedForDeletionHandler
+public abstract class FileUploadSessionMarkedForDeletionHandler
         extends EventHandler<FileUploadSessionMarkedForDeletionEvent.Data> {
 
     private final PhysicalUploadSessionDeleteUseCase physicalUploadSessionDelete;
 
-    public FileUploadSessionMarkedForDeletionHandler(final PhysicalUploadSessionDeleteUseCase physicalUploadSessionDelete) {
+    protected FileUploadSessionMarkedForDeletionHandler(
+            final PhysicalUploadSessionDeleteUseCase physicalUploadSessionDelete) {
         super(FileUploadSessionMarkedForDeletionEvent.eventKey());
         this.physicalUploadSessionDelete = Objects.requireNonNull(physicalUploadSessionDelete);
     }
