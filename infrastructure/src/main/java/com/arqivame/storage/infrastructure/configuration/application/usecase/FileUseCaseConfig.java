@@ -11,6 +11,8 @@ import com.arqivame.storage.application.file.session.chunk.write.DefaultWriteUpl
 import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkUseCase;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
 import com.arqivame.storage.application.file.session.create.DefaultCreateUploadSessionUseCase;
+import com.arqivame.storage.application.file.session.delete.mark.DefaultMarkUploadSessionForDeletionUseCase;
+import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.service.StorageWriter;
@@ -54,6 +56,11 @@ public class FileUseCaseConfig {
         return new DefaultCancelUploadSessionUseCase(
                 eventDispatcher,
                 fileGateway);
+    }
+
+    @Bean
+    MarkUploadSessionForDeletionUseCase markUploadSessionForDeletionUseCase() {
+        return new DefaultMarkUploadSessionForDeletionUseCase(eventDispatcher, fileGateway);
     }
 
 }

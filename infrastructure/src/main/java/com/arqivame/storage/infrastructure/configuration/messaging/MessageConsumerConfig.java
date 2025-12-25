@@ -1,0 +1,24 @@
+package com.arqivame.storage.infrastructure.configuration.messaging;
+
+import java.util.function.Consumer;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+
+import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionUseCase;
+import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
+import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionCanceledConsumer;
+import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
+
+@Configuration
+public class MessageConsumerConfig {
+
+    @Bean
+    Consumer<Message<FileUploadSessionCanceledEvent>> fileUploadSessionCanceledConsumer(
+            final MessageProducer<Message<FileUploadSessionCanceledEvent>> errorMessageProducer,
+            final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletionUseCase) {
+        return new FileUploadSessionCanceledConsumer(2, errorMessageProducer, markUploadSessionForDeletionUseCase);
+    }
+
+}

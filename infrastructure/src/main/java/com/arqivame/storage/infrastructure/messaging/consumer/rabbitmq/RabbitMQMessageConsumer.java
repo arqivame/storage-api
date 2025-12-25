@@ -11,21 +11,27 @@ import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 
 public abstract class RabbitMQMessageConsumer<T extends Serializable> extends MessageConsumer<Message<T>> {
 
-    protected RabbitMQMessageConsumer(final RabbitMQFailureHandler<T> failureHandler) {
-        super(failureHandler);
+    protected RabbitMQMessageConsumer(
+            final Integer maxRetryAttempts,
+            final MessageProducer<Message<T>> errorMessageProducer,
+            final Set<Class<? extends Throwable>> unretryableExceptions) {
+        super(new RabbitMQMessageConsumer.RabbitMQFailureHandler<T>(
+                maxRetryAttempts,
+                unretryableExceptions,
+                errorMessageProducer));
     }
 
-    public static class RabbitMQFailureHandler<T extends Serializable> implements FailureHandler<Message<T>> {
+    static class RabbitMQFailureHandler<T extends Serializable> implements FailureHandler<Message<T>> {
 
         private final Integer maxRetryAttempts;
         private final Set<Class<? extends Throwable>> unretryableExceptions;
 
-        private final MessageProducer<T> errorMessageProducer;
+        private final MessageProducer<Message<T>> errorMessageProducer;
 
-        public RabbitMQFailureHandler(
+        RabbitMQFailureHandler(
                 final Integer maxRetryAttempts,
                 final Set<Class<? extends Throwable>> unretryableExceptions,
-                final MessageProducer<T> errorMessageProducer) {
+                final MessageProducer<Message<T>> errorMessageProducer) {
             this.maxRetryAttempts = maxRetryAttempts;
             this.unretryableExceptions = unretryableExceptions;
             this.errorMessageProducer = errorMessageProducer;
@@ -35,12 +41,12 @@ public abstract class RabbitMQMessageConsumer<T extends Serializable> extends Me
         public void handle(final Message<T> message, final Throwable throwable) {
 
             if (isMaxRetryAttemptsExceeded(getRetryCount(message.getHeaders())))
-                errorMessageProducer.produce(message.getPayload());
+                errorMessageProducer.produce(message);
 
             if (isExceptionRetryable(throwable))
                 throw RetryableException.of(throwable);
 
-            errorMessageProducer.produce(message.getPayload());
+            errorMessageProducer.produce(message);
         }
 
         private Boolean isMaxRetryAttemptsExceeded(final Integer actualRetryCount) {
