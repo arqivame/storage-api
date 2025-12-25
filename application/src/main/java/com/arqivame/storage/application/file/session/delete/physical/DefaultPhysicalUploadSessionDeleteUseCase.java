@@ -9,7 +9,7 @@ import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.UploadSessionID;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 
-public class DefaultPhysicalUploadSessionDelete extends PhysicalUploadSessionDelete {
+public class DefaultPhysicalUploadSessionDeleteUseCase extends PhysicalUploadSessionDeleteUseCase {
 
     private final EventDispatcher eventDispatcher;
 
@@ -17,7 +17,7 @@ public class DefaultPhysicalUploadSessionDelete extends PhysicalUploadSessionDel
 
     private final StorageDeleter storageDeleter;
 
-    public DefaultPhysicalUploadSessionDelete(
+    public DefaultPhysicalUploadSessionDeleteUseCase(
             final EventDispatcher eventDispatcher,
             final FileGateway fileGateway,
             final StorageDeleter storageDeleter) {

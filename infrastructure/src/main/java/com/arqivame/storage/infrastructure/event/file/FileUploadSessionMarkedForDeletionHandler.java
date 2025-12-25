@@ -2,7 +2,7 @@ package com.arqivame.storage.infrastructure.event.file;
 
 import java.util.Objects;
 
-import com.arqivame.storage.application.file.session.delete.physical.PhysicalUploadSessionDelete;
+import com.arqivame.storage.application.file.session.delete.physical.PhysicalUploadSessionDeleteUseCase;
 import com.arqivame.storage.application.file.session.delete.physical.PhysicalUploadSessionDeleteInput;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventHandler;
@@ -12,9 +12,9 @@ import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletion
 public class FileUploadSessionMarkedForDeletionHandler
         extends EventHandler<FileUploadSessionMarkedForDeletionEvent.Data> {
 
-    private final PhysicalUploadSessionDelete physicalUploadSessionDelete;
+    private final PhysicalUploadSessionDeleteUseCase physicalUploadSessionDelete;
 
-    public FileUploadSessionMarkedForDeletionHandler(final PhysicalUploadSessionDelete physicalUploadSessionDelete) {
+    public FileUploadSessionMarkedForDeletionHandler(final PhysicalUploadSessionDeleteUseCase physicalUploadSessionDelete) {
         super(FileUploadSessionMarkedForDeletionEvent.eventKey());
         this.physicalUploadSessionDelete = Objects.requireNonNull(physicalUploadSessionDelete);
     }
