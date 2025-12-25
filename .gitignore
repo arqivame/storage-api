@@ -23,6 +23,3 @@ bin
 *log.json.gz
 
 /storage/files/**
-
-# Ignore local environment configuration
-infrastructure/src/main/resources/application-localhost.yml
