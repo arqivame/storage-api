@@ -21,8 +21,8 @@ spring:
     show-sql: true
   cloud:
 
-    # function:
-    #   definition: fileUploadSessionCanceledConsumer
+    function:
+      definition: fileUploadSessionCanceledConsumer
 
     stream:
 
@@ -43,16 +43,16 @@ spring:
       default-binder: rabbitmq-binder
       default:
         content-type: application/json
-        
-
 
       bindings:
 
         # Outgoing bindings
         fileUploadSessionCanceledEvent-out-0:
           destination: storage.exchange
+          content-type: application/json
         fileUploadSessionCanceledEventError-out-0:
           destination: storage.exchange.error
+          content-type: application/json
         # fileUploadSessionChunksPhysicallyDeletedEvent-out-0:
         #   destination: storage.exchange
         # fileUploadSessionChunksPhysicallyDeletedEventError-out-0:
@@ -70,6 +70,7 @@ spring:
         fileUploadSessionCanceledEvent-in-0:
           destination: storage.exchange
           group: storage.file:upload-session.canceled.queue
+          content-type: application/json
           consumer:
             max-attempts: 1
             concurrency: 3

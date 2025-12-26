@@ -42,8 +42,10 @@ public abstract class RabbitMQMessageConsumer<T extends Serializable> extends Me
         @Override
         public void handle(final Message<T> message, final Throwable throwable) {
 
-            if (isMaxRetryAttemptsExceeded(getRetryCount(message.getHeaders())))
+            if (isMaxRetryAttemptsExceeded(getRetryCount(message.getHeaders()))) {
                 errorMessageProducer.produce(message);
+                return;
+            }
 
             if (isExceptionRetryable(throwable))
                 throw RetryableException.of(throwable);

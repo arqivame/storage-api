@@ -7,27 +7,28 @@ import org.springframework.messaging.Message;
 
 import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionInput;
 import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionUseCase;
-import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
+import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCanceledMessage;
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.RabbitMQMessageConsumer;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 
-public class FileUploadSessionCanceledConsumer extends RabbitMQMessageConsumer<FileUploadSessionCanceledEvent> {
+public class FileUploadSessionCanceledConsumer
+        extends RabbitMQMessageConsumer<FileUploadSessionCanceledMessage> {
 
     private final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletion;
 
     public FileUploadSessionCanceledConsumer(
             final Long maxRetryAttempts,
-            final MessageProducer<Message<FileUploadSessionCanceledEvent>> errorMessageProducer,
+            final MessageProducer<Message<FileUploadSessionCanceledMessage>> errorMessageProducer,
             final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletion) {
         super(maxRetryAttempts, errorMessageProducer, Set.of());
         this.markUploadSessionForDeletion = Objects.requireNonNull(markUploadSessionForDeletion);
     }
 
     @Override
-    public void consume(final Message<FileUploadSessionCanceledEvent> message) {
+    public void consume(final Message<FileUploadSessionCanceledMessage> message) {
 
-        final FileUploadSessionCanceledEvent event = message.getPayload();
-        final FileUploadSessionCanceledEvent.Data data = event.getData();
+        final FileUploadSessionCanceledMessage event = message.getPayload();
+        final FileUploadSessionCanceledMessage.Data data = event.getData();
 
         final MarkUploadSessionForDeletionInput input = new MarkUploadSessionForDeletionInput(
                 data.fileId(),
