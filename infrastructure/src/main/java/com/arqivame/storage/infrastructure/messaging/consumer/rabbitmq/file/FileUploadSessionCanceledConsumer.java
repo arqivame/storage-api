@@ -28,7 +28,7 @@ public class FileUploadSessionCanceledConsumer
     public void consume(final Message<FileUploadSessionCanceledMessage> message) {
 
         final FileUploadSessionCanceledMessage event = message.getPayload();
-        final FileUploadSessionCanceledMessage.Data data = event.getData();
+        final FileUploadSessionCanceledMessage.Data data = event.data();
 
         final MarkUploadSessionForDeletionInput input = new MarkUploadSessionForDeletionInput(
                 data.fileId(),

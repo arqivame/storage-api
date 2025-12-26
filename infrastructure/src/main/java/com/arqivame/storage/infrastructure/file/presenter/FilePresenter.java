@@ -7,7 +7,7 @@ import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCanceledM
 public interface FilePresenter {
 
     public static FileUploadSessionCanceledMessage present(final FileUploadSessionCanceledEvent event) {
-        return (FileUploadSessionCanceledMessage) EventPresenter.present(event, FilePresenter::toData);
+        return new FileUploadSessionCanceledMessage(EventPresenter.present(event), toData(event.getData()));
     }
 
     private static FileUploadSessionCanceledMessage.Data toData(final FileUploadSessionCanceledEvent.Data eventData) {

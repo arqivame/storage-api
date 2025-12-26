@@ -6,9 +6,12 @@ import java.util.UUID;
 
 import com.arqivame.storage.infrastructure.event.model.EventMessage;
 
-public class FileUploadSessionCanceledMessage extends EventMessage<FileUploadSessionCanceledMessage.Data> {
+public record FileUploadSessionCanceledMessage(
+        EventMessage.Metadata metadata,
+        Data data)
+        implements EventMessage<FileUploadSessionCanceledMessage.Data> {
 
-    public static record Data(
+    public record Data(
             UUID fileId,
             UUID sessionId,
             Instant closedAt) implements Serializable {
