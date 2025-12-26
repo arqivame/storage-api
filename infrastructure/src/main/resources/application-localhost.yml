@@ -53,18 +53,6 @@ spring:
           destination: storage.exchange.error
           producer:
             requiredGroups: storage.file:upload-session.canceled.queue.error
-        # fileUploadSessionChunksPhysicallyDeletedEvent-out-0:
-        #   destination: storage.exchange
-        # fileUploadSessionChunksPhysicallyDeletedEventError-out-0:
-        #   destination: storage.exchange.error
-        # fileUploadSessionClosedEvent-out-0:
-        #   destination: storage.exchange
-        # fileUploadSessionClosedEventError-out-0:
-        #   destination: storage.exchange.error
-        # fileUploadSessionMarkedForDeletionEvent-out-0:
-        #   destination: storage.exchange
-        # fileUploadSessionMarkedForDeletionEventError-out-0:
-        #   destination: storage.exchange.error
 
         # Incoming bindings
         fileUploadSessionCanceledEvent-in-0:
@@ -73,30 +61,7 @@ spring:
           consumer:
             max-attempts: 1
             concurrency: 3
-        fileUploadSessionCanceledEventError-in-0:
-          destination: storage.exchange.error
-          group: storage.file:upload-session.canceled.queue.error
-          # consumer:
-          #   auto-startup: false
-        # fileUploadSessionChunksPhysicallyDeletedEvent-in-0:
-        #   destination: storage.exchange
-        #   group: storage.file:upload-session:chunk.deleted.queue
-        #   consumer:
-        #     max-attempts: 1
-        #     concurrency: 3
-        # fileUploadSessionClosedEvent-in-0:
-        #   destination: storage.exchange
-        #   group: storage.file:upload-session.closed.queue
-        #   consumer:
-        #     max-attempts: 1
-        #     concurrency: 3
-        # fileUploadSessionMarkedForDeletionEvent-in-0:
-        #   destination: storage.exchange
-        #   group: storage.file:upload-session.marked-for-deletion.queue
-        #   consumer:
-        #     max-attempts: 1
-        #     concurrency: 3
-    
+
       rabbit:
         bindings:
 
@@ -106,18 +71,12 @@ spring:
               exchangeType: topic
               destination: storage.exchange
               routingKeyExpression: "'storage.file:upload-session.canceled'"
-
           fileUploadSessionCanceledEventError-out-0:
             producer:
               exchangeType: topic
               destination: storage.exchange.error
               routingKeyExpression: "'storage.file:upload-session.canceled'"
               queueNameGroupOnly: true
-          # fileUploadSessionChunksPhysicallyDeletedEvent-out-0:
-          #   producer:
-          #     exchangeType: topic
-          #     destination: storage.exchange
-          #     routingKeyExpression: "'storage.file:upload-session.canceled'"
 
           # Incoming RabbitMQ bindings
           fileUploadSessionCanceledEvent-in-0:
@@ -125,11 +84,9 @@ spring:
               exchangeType: topic
               bindingRoutingKey: storage.file:upload-session.canceled
               queueNameGroupOnly: true
-
               autoBindDlq: true
               deadLetterExchange: storage.exchange.wait
               deadLetterQueueName: storage.file:upload-session.canceled.queue.wait
-
               dlqDeadLetterExchange: storage.exchange
               dlqDeadLetterRoutingKey: storage.file:upload-session.canceled
               republishToDlq: false
