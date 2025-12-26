@@ -18,7 +18,7 @@ public class FileUploadSessionCanceledConsumer
 
     public FileUploadSessionCanceledConsumer(
             final Long maxRetryAttempts,
-            final MessageProducer<Message<FileUploadSessionCanceledMessage>> errorMessageProducer,
+            final MessageProducer<FileUploadSessionCanceledMessage> errorMessageProducer,
             final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletion) {
         super(maxRetryAttempts, errorMessageProducer, Set.of());
         this.markUploadSessionForDeletion = Objects.requireNonNull(markUploadSessionForDeletion);

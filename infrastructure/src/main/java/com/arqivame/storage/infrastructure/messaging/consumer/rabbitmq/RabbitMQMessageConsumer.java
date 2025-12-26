@@ -15,7 +15,7 @@ public abstract class RabbitMQMessageConsumer<T extends Serializable> extends Me
 
     protected RabbitMQMessageConsumer(
             final Long maxRetryAttempts,
-            final MessageProducer<Message<T>> errorMessageProducer,
+            final MessageProducer<T> errorMessageProducer,
             final Set<Class<? extends Throwable>> unretryableExceptions) {
         super(new RabbitMQMessageConsumer.RabbitMQFailureHandler<T>(
                 maxRetryAttempts,
@@ -28,12 +28,12 @@ public abstract class RabbitMQMessageConsumer<T extends Serializable> extends Me
         private final Long maxRetryAttempts;
         private final Set<Class<? extends Throwable>> unretryableExceptions;
 
-        private final MessageProducer<Message<T>> errorMessageProducer;
+        private final MessageProducer<T> errorMessageProducer;
 
         RabbitMQFailureHandler(
                 final Long maxRetryAttempts,
                 final Set<Class<? extends Throwable>> unretryableExceptions,
-                final MessageProducer<Message<T>> errorMessageProducer) {
+                final MessageProducer<T> errorMessageProducer) {
             this.maxRetryAttempts = maxRetryAttempts;
             this.unretryableExceptions = unretryableExceptions;
             this.errorMessageProducer = errorMessageProducer;
@@ -43,14 +43,14 @@ public abstract class RabbitMQMessageConsumer<T extends Serializable> extends Me
         public void handle(final Message<T> message, final Throwable throwable) {
 
             if (isMaxRetryAttemptsExceeded(getRetryCount(message.getHeaders()))) {
-                errorMessageProducer.produce(message);
+                errorMessageProducer.produce(message.getPayload());
                 return;
             }
 
             if (isExceptionRetryable(throwable))
                 throw RetryableException.of(throwable);
 
-            errorMessageProducer.produce(message);
+            errorMessageProducer.produce(message.getPayload());
         }
 
         private Boolean isMaxRetryAttemptsExceeded(final Long actualRetryCount) {

@@ -1,4 +1,4 @@
-package com.arqivame.storage.infrastructure.configuration.event;
+package com.arqivame.storage.infrastructure.configuration.domain.event;
 
 import java.util.List;
 

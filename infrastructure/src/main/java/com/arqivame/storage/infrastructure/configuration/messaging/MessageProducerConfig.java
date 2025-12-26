@@ -5,7 +5,7 @@ import java.util.Objects;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
+import org.springframework.context.annotation.Primary;
 
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCanceledMessage;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
@@ -21,12 +21,13 @@ public class MessageProducerConfig {
     }
 
     @Bean
+    @Primary
     MessageProducer<FileUploadSessionCanceledMessage> fileUploadSessionCanceledEvent() {
         return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCanceledEvent-out-0");
     }
 
     @Bean
-    MessageProducer<Message<FileUploadSessionCanceledMessage>> fileUploadSessionCanceledEventError() {
+    MessageProducer<FileUploadSessionCanceledMessage> fileUploadSessionCanceledEventError() {
         return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCanceledEventError-out-0");
     }
 

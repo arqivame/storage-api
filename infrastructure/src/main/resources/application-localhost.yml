@@ -51,6 +51,8 @@ spring:
           destination: storage.exchange
         fileUploadSessionCanceledEventError-out-0:
           destination: storage.exchange.error
+          producer:
+            requiredGroups: storage.file:upload-session.canceled.queue.error
         # fileUploadSessionChunksPhysicallyDeletedEvent-out-0:
         #   destination: storage.exchange
         # fileUploadSessionChunksPhysicallyDeletedEventError-out-0:
@@ -71,6 +73,11 @@ spring:
           consumer:
             max-attempts: 1
             concurrency: 3
+        fileUploadSessionCanceledEventError-in-0:
+          destination: storage.exchange.error
+          group: storage.file:upload-session.canceled.queue.error
+          # consumer:
+          #   auto-startup: false
         # fileUploadSessionChunksPhysicallyDeletedEvent-in-0:
         #   destination: storage.exchange
         #   group: storage.file:upload-session:chunk.deleted.queue
@@ -105,6 +112,7 @@ spring:
               exchangeType: topic
               destination: storage.exchange.error
               routingKeyExpression: "'storage.file:upload-session.canceled'"
+              queueNameGroupOnly: true
           # fileUploadSessionChunksPhysicallyDeletedEvent-out-0:
           #   producer:
           #     exchangeType: topic
@@ -126,6 +134,7 @@ spring:
               dlqDeadLetterRoutingKey: storage.file:upload-session.canceled
               republishToDlq: false
               dlqTtl: 5000
+
 
 
 

@@ -2,6 +2,7 @@ package com.arqivame.storage.infrastructure.configuration.messaging;
 
 import java.util.function.Consumer;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -16,7 +17,7 @@ public class MessageConsumerConfig {
 
     @Bean
     Consumer<Message<FileUploadSessionCanceledMessage>> fileUploadSessionCanceledConsumer(
-            final MessageProducer<Message<FileUploadSessionCanceledMessage>> errorMessageProducer,
+            @Qualifier("fileUploadSessionCanceledEventError") final MessageProducer<FileUploadSessionCanceledMessage> errorMessageProducer,
             final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletionUseCase) {
         return new FileUploadSessionCanceledConsumer(2L, errorMessageProducer, markUploadSessionForDeletionUseCase);
     }

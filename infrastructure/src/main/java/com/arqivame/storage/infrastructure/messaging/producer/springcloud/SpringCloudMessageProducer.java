@@ -3,7 +3,6 @@ package com.arqivame.storage.infrastructure.messaging.producer.springcloud;
 import java.util.Objects;
 
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.messaging.support.MessageBuilder;
 
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 
@@ -21,7 +20,7 @@ public class SpringCloudMessageProducer<T> implements MessageProducer<T> {
 
     @Override
     public void produce(final T payload) {
-        streamBridge.send(bindingName, MessageBuilder.withPayload(payload).build());
+        streamBridge.send(bindingName, payload);
     }
 
 }
