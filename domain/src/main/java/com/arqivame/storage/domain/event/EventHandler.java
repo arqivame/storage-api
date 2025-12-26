@@ -2,11 +2,11 @@ package com.arqivame.storage.domain.event;
 
 import java.io.Serializable;
 
-public abstract class EventHandler<D extends Serializable> {
+public abstract class EventHandler<E extends Event<? extends Serializable>> {
 
     private final String eventKey;
 
-    protected EventHandler(String eventKey) {
+    protected EventHandler(final String eventKey) {
         this.eventKey = eventKey;
     }
 
@@ -14,6 +14,6 @@ public abstract class EventHandler<D extends Serializable> {
         return eventKey;
     }
 
-    public abstract void handle(Event<D> event);
+    public abstract void handle(E event);
 
 }

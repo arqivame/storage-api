@@ -66,15 +66,14 @@ public class DefaultFileGateway implements FileGateway {
 
     private File save(final File file) {
 
-        final File savedFile = fileJpaRepository
-                .saveAndFlush(Objects.requireNonNull(FileJpaEntity.fromDomain(file)))
-                .toDomain(file.getUploadSessions());
+        fileJpaRepository
+                .saveAndFlush(Objects.requireNonNull(FileJpaEntity.fromDomain(file)));
 
-        savedFile
+        file
                 .getUploadSessions()
-                .forEach(session -> saveChunks(savedFile, saveUploadSession(savedFile, session)));
+                .forEach(session -> saveChunks(file, saveUploadSession(file, session)));
 
-        return savedFile;
+        return file;
     }
 
     private Set<UploadSession> findUploadSession(final FileID fileId) {

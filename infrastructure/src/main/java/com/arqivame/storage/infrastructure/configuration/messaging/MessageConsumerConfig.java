@@ -18,7 +18,7 @@ public class MessageConsumerConfig {
     Consumer<Message<FileUploadSessionCanceledEvent>> fileUploadSessionCanceledConsumer(
             final MessageProducer<Message<FileUploadSessionCanceledEvent>> errorMessageProducer,
             final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletionUseCase) {
-        return new FileUploadSessionCanceledConsumer(2, errorMessageProducer, markUploadSessionForDeletionUseCase);
+        return new FileUploadSessionCanceledConsumer(2L, errorMessageProducer, markUploadSessionForDeletionUseCase);
     }
 
 }

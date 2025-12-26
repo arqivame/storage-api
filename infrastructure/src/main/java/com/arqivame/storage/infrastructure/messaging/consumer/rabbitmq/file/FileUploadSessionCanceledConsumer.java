@@ -16,7 +16,7 @@ public class FileUploadSessionCanceledConsumer extends RabbitMQMessageConsumer<F
     private final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletion;
 
     public FileUploadSessionCanceledConsumer(
-            final Integer maxRetryAttempts,
+            final Long maxRetryAttempts,
             final MessageProducer<Message<FileUploadSessionCanceledEvent>> errorMessageProducer,
             final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletion) {
         super(maxRetryAttempts, errorMessageProducer, Set.of());

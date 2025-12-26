@@ -25,6 +25,11 @@ spring:
     #   definition: fileUploadSessionCanceledConsumer
 
     stream:
+
+      function:
+        bindings:
+          fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
+
       binders:
         rabbitmq-binder:
           type: rabbit
@@ -36,10 +41,10 @@ spring:
                 username: rabbitmq
                 password: rabbitmq
       default-binder: rabbitmq-binder
+      default:
+        content-type: application/json
+        
 
-      function:
-        bindings:
-          fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
 
       bindings:
 
