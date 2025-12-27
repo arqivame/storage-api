@@ -12,6 +12,7 @@ import java.util.Set;
 import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
+import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionChunksPhysicallyDeletedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent;
@@ -91,8 +92,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 .anyMatch(status -> UploadSessionStatus.ACTIVE.equals(status));
 
         if (hasAnySessionActive)
-            throw new RuntimeException(
-                    "Session already open, please close the current session before opening a new one");
+            throw UploadSessionAlreadyOpenException.create();
 
         final UploadSession session = UploadSession.create(
                 this,
