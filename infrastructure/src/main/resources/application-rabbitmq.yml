@@ -15,8 +15,8 @@ spring:
               rabbitmq:
                 host: ${rabbitmq.host}
                 port: ${rabbitmq.port}
-                username: rabbitmq
-                password: rabbitmq
+                username: ${rabbitmq.username}
+                password: ${rabbitmq.password}
       default-binder: rabbitmq-binder
       rabbit:
         bindings:
