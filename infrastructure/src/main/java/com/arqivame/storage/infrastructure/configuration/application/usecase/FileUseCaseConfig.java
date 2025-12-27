@@ -13,22 +13,24 @@ import com.arqivame.storage.application.file.session.create.CreateUploadSessionU
 import com.arqivame.storage.application.file.session.create.DefaultCreateUploadSessionUseCase;
 import com.arqivame.storage.application.file.session.delete.mark.DefaultMarkUploadSessionForDeletionUseCase;
 import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionUseCase;
+import com.arqivame.storage.application.file.session.delete.physical.DefaultPhysicalUploadSessionDeleteUseCase;
+import com.arqivame.storage.application.file.session.delete.physical.PhysicalUploadSessionDeleteUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
-import com.arqivame.storage.domain.file.service.StorageWriter;
+import com.arqivame.storage.domain.file.service.StorageService;
 
 @Configuration
 public class FileUseCaseConfig {
 
     private final FileGateway fileGateway;
 
-    private final StorageWriter storageService;
+    private final StorageService storageService;
 
     private final EventDispatcher eventDispatcher;
 
     public FileUseCaseConfig(
             final FileGateway fileGateway,
-            final StorageWriter storageService,
+            final StorageService storageService,
             final EventDispatcher eventDispatcher) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
         this.storageService = Objects.requireNonNull(storageService);
@@ -61,6 +63,14 @@ public class FileUseCaseConfig {
     @Bean
     MarkUploadSessionForDeletionUseCase markUploadSessionForDeletionUseCase() {
         return new DefaultMarkUploadSessionForDeletionUseCase(eventDispatcher, fileGateway);
+    }
+
+    @Bean
+    PhysicalUploadSessionDeleteUseCase physicalUploadSessionDeleteUseCase() {
+        return new DefaultPhysicalUploadSessionDeleteUseCase(
+                eventDispatcher,
+                fileGateway,
+                storageService);
     }
 
 }

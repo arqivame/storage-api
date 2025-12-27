@@ -8,11 +8,12 @@ spring:
       - ${VENDOR_MESSAGING:rabbitmq}
   cloud:
     function:
-      definition: fileUploadSessionCanceledConsumer
+      definition: fileUploadSessionCanceledConsumer;fileUploadSessionMarkedForDeletionConsumer
     stream:
       function:
         bindings:
           fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
+          fileUploadSessionMarkedForDeletionConsumer-in-0: fileUploadSessionMarkedForDeletionEvent-in-0
       default:
         content-type: application/json
       bindings:

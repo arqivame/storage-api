@@ -31,7 +31,9 @@ public class FileSystemStorageService implements StorageService {
     public void delete(final StorageKey key) {
 
         final String fullKey = key.getFullKey();
-        final Path sessionLocation = rootLocation.resolve(fullKey);
+        final String lastSegment = key.lastSegment();
+
+        final Path sessionLocation = rootLocation.resolve(fullKey).resolve(lastSegment);
 
         try {
             Files.delete(sessionLocation);

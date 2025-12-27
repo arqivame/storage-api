@@ -8,9 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 
 import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionUseCase;
+import com.arqivame.storage.application.file.session.delete.physical.PhysicalUploadSessionDeleteUseCase;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCanceledMessage;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionMarkedForDeletionMessage;
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionCanceledConsumer;
+import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionMarkedForDeletionConsumer;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 
 @Configuration
@@ -24,8 +26,13 @@ public class MessageConsumerConfig {
     }
 
     @Bean
-    Consumer<Message<FileUploadSessionMarkedForDeletionMessage>> fileUploadSessionMarkedForDeletionConsumer() {
-        return null;
+    Consumer<Message<FileUploadSessionMarkedForDeletionMessage>> fileUploadSessionMarkedForDeletionConsumer(
+            @Qualifier("fileUploadSessionMarkedForDeletionEventError") final MessageProducer<FileUploadSessionMarkedForDeletionMessage> errorMessageProducer,
+            final PhysicalUploadSessionDeleteUseCase physicalUploadSessionDeleteUseCase) {
+        return new FileUploadSessionMarkedForDeletionConsumer(
+                2L,
+                errorMessageProducer,
+                physicalUploadSessionDeleteUseCase);
     }
 
 }
