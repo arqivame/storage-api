@@ -1,9 +1,9 @@
 prostgres:
-  host: localhost
-  port: 5432
-  database: storage
-  username: postgres
-  password: postgres
+  host: ${POSTGRES_HOST:localhost}
+  port: ${POSTGRES_PORT:5432}
+  database: ${POSTGRES_DATABASE:storage}
+  username: ${POSTGRES_USERNAME:postgres}
+  password: ${POSTGRES_PASSWORD:postgres}
 
 spring:
   datasource:
