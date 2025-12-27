@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${prostgres.host}:${prostgres.port}/${prostgres.database}
+    username: ${prostgres.username}
+    password: ${prostgres.password}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+
+prostgres:
+  host: ${POSTGRES_HOST:localhost}
+  port: ${POSTGRES_PORT:5432}
+  database: ${POSTGRES_DATABASE:storage}
+  username: ${POSTGRES_USERNAME:postgres}
+  password: ${POSTGRES_PASSWORD:postgres}

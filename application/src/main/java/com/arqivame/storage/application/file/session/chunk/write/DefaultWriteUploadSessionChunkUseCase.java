@@ -41,15 +41,17 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
         final ValidationHandler validation = Notification.create();
 
+        final File file = findFileById(fileId);
+
         prepareForChunkWriting(
                 validation,
-                fileId,
+                file,
                 sessionId,
                 chunkIndex);
 
         writeChunk(
                 validation,
-                fileId,
+                file,
                 sessionId,
                 chunkIndex,
                 checksumValue,
@@ -65,11 +67,9 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
     private void prepareForChunkWriting(
             final ValidationHandler validation,
-            final FileID fileId,
+            final File file,
             final UploadSessionID sessionId,
             final Long chunkIndex) {
-
-        final File file = findFileById(fileId);
 
         validation.validate(() -> file.initiateChunkWriting(sessionId, chunkIndex, storageService));
         eventDispatcher.notify(fileGateway.update(file));
@@ -80,13 +80,11 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
     private void writeChunk(
             final ValidationHandler validation,
-            final FileID fileId,
+            final File file,
             final UploadSessionID sessionId,
             final Long chunkIndex,
             final Checksum checksumValue,
             final InputStream chunkData) {
-
-        final File file = findFileById(fileId);
 
         validation.validate(() -> file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData));
         eventDispatcher.notify(fileGateway.update(file));
