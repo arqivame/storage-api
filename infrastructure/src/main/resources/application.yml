@@ -2,24 +2,52 @@ server:
   port: 8080
 
 spring:
-  servlet:
-      multipart:
-        enabled: false
-  security:
-    user:
-      name: admin
-      password: admin
-  datasource:
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password: sa
-    driver-class-name: org.h2.Driver
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  profiles:
+    active:
+      - ${VENDOR_DATABASE:postgres}
+      - ${VENDOR_MESSAGING:rabbitmq}
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: create
     show-sql: true
+  cloud:
+    function:
+      definition: fileUploadSessionCanceledConsumer
+    stream:
+      function:
+        bindings:
+          fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
+      default:
+        content-type: application/json
+      bindings:
+        # Outgoing bindings
+        ## File Upload Session Canceled Event
+        fileUploadSessionCanceledEvent-out-0:
+          destination: storage.exchange
+        fileUploadSessionCanceledEventError-out-0:
+          destination: storage.exchange.error
+          producer:
+            requiredGroups: storage.file:upload-session.canceled.queue.error
+        ## File Upload Session Marked For Deletion Event
+        fileUploadSessionMarkedForDeletionEvent-out-0:
+          destination: storage.exchange
+        fileUploadSessionMarkedForDeletionEventError-out-0:
+          destination: storage.exchange.error
+          producer:
+            requiredGroups: storage.file:upload-session.marked-for-deletion.queue.error
+        # Incoming bindings
+        ## File Upload Session Canceled Event
+        fileUploadSessionCanceledEvent-in-0:
+          destination: storage.exchange
+          group: storage.file:upload-session.canceled.queue
+          consumer:
+            max-attempts: 1
+            concurrency: 1
+        ## File Upload Session Marked For Deletion Event
+        fileUploadSessionMarkedForDeletionEvent-in-0:
+          destination: storage.exchange
+          group: storage.file:upload-session.marked-for-deletion.queue
+          consumer:
+            max-attempts: 1
+            concurrency: 1
