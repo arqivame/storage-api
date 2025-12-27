@@ -9,6 +9,7 @@ import org.springframework.messaging.Message;
 
 import com.arqivame.storage.application.file.session.delete.mark.MarkUploadSessionForDeletionUseCase;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCanceledMessage;
+import com.arqivame.storage.infrastructure.file.model.FileUploadSessionMarkedForDeletionMessage;
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionCanceledConsumer;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 
@@ -20,6 +21,11 @@ public class MessageConsumerConfig {
             @Qualifier("fileUploadSessionCanceledEventError") final MessageProducer<FileUploadSessionCanceledMessage> errorMessageProducer,
             final MarkUploadSessionForDeletionUseCase markUploadSessionForDeletionUseCase) {
         return new FileUploadSessionCanceledConsumer(2L, errorMessageProducer, markUploadSessionForDeletionUseCase);
+    }
+
+    @Bean
+    Consumer<Message<FileUploadSessionMarkedForDeletionMessage>> fileUploadSessionMarkedForDeletionConsumer() {
+        return null;
     }
 
 }

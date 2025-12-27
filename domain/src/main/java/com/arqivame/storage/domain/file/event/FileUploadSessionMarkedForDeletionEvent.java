@@ -15,8 +15,8 @@ import com.arqivame.storage.domain.file.UploadSession;
 
 public class FileUploadSessionMarkedForDeletionEvent extends Event<FileUploadSessionMarkedForDeletionEvent.Data> {
 
-    private static final String ENTITY = "file.upload_session";
-    private static final String ACTION = "marked_for_deletion";
+    private static final String ENTITY = "file.upload-session";
+    private static final String ACTION = "marked-for-deletion";
     private static final String VERSION = "0.0.1";
 
     private static final FileUploadSessionMarkedForDeletionEvent DEFAULT_INSTANCE = new FileUploadSessionMarkedForDeletionEvent();
@@ -32,13 +32,10 @@ public class FileUploadSessionMarkedForDeletionEvent extends Event<FileUploadSes
         super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
     }
 
-    public record Data(UUID fileId, UUID sessionId, Instant markedForDeletionAt) implements Serializable {
+    public record Data(UUID fileId, UUID sessionId) implements Serializable {
 
         public static Data of(final File file, final UploadSession session) {
-            return new Data(
-                    file.getId().getValue(),
-                    session.getId().getValue(),
-                    Instant.now());
+            return new Data(file.getId().getValue(), session.getId().getValue());
         }
 
     }

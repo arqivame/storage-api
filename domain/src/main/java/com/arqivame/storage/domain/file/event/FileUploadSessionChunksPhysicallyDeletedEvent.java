@@ -15,8 +15,8 @@ import com.arqivame.storage.domain.file.UploadSession;
 public class FileUploadSessionChunksPhysicallyDeletedEvent
         extends Event<FileUploadSessionChunksPhysicallyDeletedEvent.Data> {
 
-    private static final String ENTITY = "file.upload_session.chunks";
-    private static final String ACTION = "physically_deleted";
+    private static final String ENTITY = "file.upload-session.chunks";
+    private static final String ACTION = "physically-deleted";
     private static final String VERSION = "0.0.1";
 
     private static final FileUploadSessionChunksPhysicallyDeletedEvent DEFAULT_INSTANCE = new FileUploadSessionChunksPhysicallyDeletedEvent();
