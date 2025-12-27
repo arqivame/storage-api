@@ -6,11 +6,6 @@ spring:
     active:
       - ${VENDOR_DATABASE:postgres}
       - ${VENDOR_MESSAGING:rabbitmq}
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: create
-    show-sql: true
   cloud:
     function:
       definition: fileUploadSessionCanceledConsumer

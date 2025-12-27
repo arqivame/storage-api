@@ -16,3 +16,8 @@ spring:
     console:
       enabled: ${h2.console.enabled}
       path: ${h2.console.path}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create
+    show-sql: true
