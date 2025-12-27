@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventEntity;
+import com.arqivame.storage.domain.event.EventMetadata;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
 
@@ -22,14 +23,14 @@ public class FileUploadSessionCanceledEvent extends Event<FileUploadSessionCance
     private static final FileUploadSessionCanceledEvent DEFAULT_INSTANCE = new FileUploadSessionCanceledEvent();
 
     private FileUploadSessionCanceledEvent() {
-        super(ENTITY, ACTION, VERSION, null, null, null);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, Instant.now(), Set.of()), null);
     }
 
     private FileUploadSessionCanceledEvent(
             Instant occurredAt,
             Set<EventEntity> relatedEntities,
             FileUploadSessionCanceledEvent.Data data) {
-        super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, occurredAt, relatedEntities), data);
     }
 
     public record Data(UUID fileId, UUID sessionId, Instant closedAt) implements Serializable {

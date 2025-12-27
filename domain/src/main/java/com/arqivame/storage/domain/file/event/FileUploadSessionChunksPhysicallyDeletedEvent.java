@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventEntity;
+import com.arqivame.storage.domain.event.EventMetadata;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
 
@@ -22,14 +23,14 @@ public class FileUploadSessionChunksPhysicallyDeletedEvent
     private static final FileUploadSessionChunksPhysicallyDeletedEvent DEFAULT_INSTANCE = new FileUploadSessionChunksPhysicallyDeletedEvent();
 
     private FileUploadSessionChunksPhysicallyDeletedEvent() {
-        super(ENTITY, ACTION, VERSION, null, null, null);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, Instant.now(), Set.of()), null);
     }
 
     private FileUploadSessionChunksPhysicallyDeletedEvent(
             Instant occurredAt,
             Set<EventEntity> relatedEntities,
             FileUploadSessionChunksPhysicallyDeletedEvent.Data data) {
-        super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, occurredAt, relatedEntities), data);
     }
 
     public record Data(String fileId, String sessionId) implements Serializable {

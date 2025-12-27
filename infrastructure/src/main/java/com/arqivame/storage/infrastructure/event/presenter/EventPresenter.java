@@ -8,13 +8,13 @@ public interface EventPresenter {
 
     public static EventMessage.Metadata present(final Event<?> event) {
         return new EventMessage.Metadata(
-                event.getDomain(),
-                event.getEntity(),
-                event.getAction(),
-                event.getService(),
-                event.getVersion(),
-                event.getOccurredAt(),
-                event.getRelatedEntities()
+                event.getMetadata().domain(),
+                event.getMetadata().entity(),
+                event.getMetadata().action(),
+                event.getMetadata().service(),
+                event.getMetadata().version(),
+                event.getMetadata().occurredAt(),
+                event.getMetadata().relatedEntities()
                         .stream()
                         .map(EventPresenter::present)
                         .collect(java.util.stream.Collectors.toSet()));

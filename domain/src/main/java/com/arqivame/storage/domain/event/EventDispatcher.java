@@ -1,6 +1,5 @@
 package com.arqivame.storage.domain.event;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +24,7 @@ public final class EventDispatcher {
         this.handlers.remove(eventKey);
     }
 
-    public <D extends Serializable> void notify(final Event<D> event) {
+    public <D> void notify(final Event<D> event) {
         @SuppressWarnings("unchecked")
         final List<EventHandler<Event<D>>> handlers = (List<EventHandler<Event<D>>>) Optional
                 .ofNullable(this.handlers.get(event.key()))

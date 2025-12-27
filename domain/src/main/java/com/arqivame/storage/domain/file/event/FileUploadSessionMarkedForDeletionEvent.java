@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventEntity;
+import com.arqivame.storage.domain.event.EventMetadata;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
 
@@ -22,14 +23,14 @@ public class FileUploadSessionMarkedForDeletionEvent extends Event<FileUploadSes
     private static final FileUploadSessionMarkedForDeletionEvent DEFAULT_INSTANCE = new FileUploadSessionMarkedForDeletionEvent();
 
     private FileUploadSessionMarkedForDeletionEvent() {
-        super(ENTITY, ACTION, VERSION, null, null, null);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, Instant.now(), Set.of()), null);
     }
 
     private FileUploadSessionMarkedForDeletionEvent(
             Instant occurredAt,
             Set<EventEntity> relatedEntities,
             FileUploadSessionMarkedForDeletionEvent.Data data) {
-        super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, occurredAt, relatedEntities), data);
     }
 
     public record Data(UUID fileId, UUID sessionId) implements Serializable {

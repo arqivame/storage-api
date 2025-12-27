@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventEntity;
+import com.arqivame.storage.domain.event.EventMetadata;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.UploadSession;
 
@@ -21,14 +22,14 @@ public class FileUploadSessionClosedEvent extends Event<FileUploadSessionClosedE
     private static final FileUploadSessionClosedEvent DEFAULT_INSTANCE = new FileUploadSessionClosedEvent();
 
     private FileUploadSessionClosedEvent() {
-        super(ENTITY, ACTION, VERSION, null, null, null);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, Instant.now(), Set.of()), null);
     }
 
     private FileUploadSessionClosedEvent(
             Instant occurredAt,
             Set<EventEntity> relatedEntities,
             FileUploadSessionClosedEvent.Data data) {
-        super(ENTITY, ACTION, VERSION, occurredAt, relatedEntities, data);
+        super(EventMetadata.create(ENTITY, ACTION, VERSION, occurredAt, relatedEntities), data);
     }
 
     public record Data(String fileId, String sessionId, Instant closedAt) implements Serializable {
