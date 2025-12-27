@@ -1,49 +1,25 @@
 server:
-  port: 8080
-
+  port: ${application.server.port}
 spring:
   profiles:
     active:
-      - ${VENDOR_DATABASE:postgres}
-      - ${VENDOR_MESSAGING:rabbitmq}
-  cloud:
-    function:
-      definition: fileUploadSessionCanceledConsumer;fileUploadSessionMarkedForDeletionConsumer
-    stream:
-      function:
-        bindings:
-          fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
-          fileUploadSessionMarkedForDeletionConsumer-in-0: fileUploadSessionMarkedForDeletionEvent-in-0
-      default:
-        content-type: application/json
-      bindings:
-        # Outgoing bindings
-        ## File Upload Session Canceled Event
-        fileUploadSessionCanceledEvent-out-0:
-          destination: storage.exchange
-        fileUploadSessionCanceledEventError-out-0:
-          destination: storage.exchange.error
-          producer:
-            requiredGroups: storage.file:upload-session.canceled.queue.error
-        ## File Upload Session Marked For Deletion Event
-        fileUploadSessionMarkedForDeletionEvent-out-0:
-          destination: storage.exchange
-        fileUploadSessionMarkedForDeletionEventError-out-0:
-          destination: storage.exchange.error
-          producer:
-            requiredGroups: storage.file:upload-session.marked-for-deletion.queue.error
-        # Incoming bindings
-        ## File Upload Session Canceled Event
-        fileUploadSessionCanceledEvent-in-0:
-          destination: storage.exchange
-          group: storage.file:upload-session.canceled.queue
-          consumer:
-            max-attempts: 1
-            concurrency: 1
-        ## File Upload Session Marked For Deletion Event
-        fileUploadSessionMarkedForDeletionEvent-in-0:
-          destination: storage.exchange
-          group: storage.file:upload-session.marked-for-deletion.queue
-          consumer:
-            max-attempts: 1
-            concurrency: 1
+      - spring-cloud
+      - ${application.vendor.database}
+      - ${application.vendor.messaging}
+
+application:
+  name: storage-api
+  server:
+    context-path: /api/storage
+    port: ${STORAGE_SERVER_PORT:8080}
+  vendor:
+    database: ${STORAGE_VENDOR_DATABASE:postgres}
+    messaging: ${STORAGE_VENDOR_MESSAGING:rabbitmq}
+  messaging:
+    consumer:
+      file-upload-session-canceled-event:
+        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CANCELED_CONCURRENCY:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CANCELED_MAX_ATTEMPTS:1}
+      file-upload-session-marked-for-deletion-event:
+        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_MARKED_FOR_DELETION_CONCURRENCY:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_MARKED_FOR_DELETION_MAX_ATTEMPTS:1}
