@@ -8,10 +8,17 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.exception.InvalidArgumentException;
+import com.arqivame.storage.domain.exception.InvalidStateException;
+import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
+import com.arqivame.storage.domain.exception.ValidationException;
+import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
+import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.ValidationHandler;
+import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class UploadSession extends Entity<UploadSessionID> {
 
@@ -58,6 +65,12 @@ public class UploadSession extends Entity<UploadSessionID> {
         this.waitingForDeletion = waitingForDeletion;
 
         this.version = version;
+
+        final Notification notification = Notification.create();
+        validate(notification);
+        if (notification.hasErrors())
+            throw ValidationException.with("Invalid upload session", notification);
+
     }
 
     public static UploadSession create(
@@ -68,19 +81,6 @@ public class UploadSession extends Entity<UploadSessionID> {
             final Duration maxIdleTime,
             final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
-
-        if (totalChunks <= 0)
-            throw new IllegalArgumentException("Total chunks must be greater than zero");
-
-        if (maxIdleTime.isNegative() || maxIdleTime.isZero())
-            throw new IllegalArgumentException("Max idle time must be greater than zero");
-
-        if (maxBytesPerSecondTransferRatePerChunk <= 0)
-            throw new IllegalArgumentException(
-                    "Max bytes per second transfer rate per chunk must be greater than zero");
-
-        if (maxChunksAtSameTime <= 0)
-            throw new IllegalArgumentException("Max chunks at same time must be greater than zero");
 
         return new UploadSession(
                 UploadSessionID.unique(),
@@ -130,14 +130,29 @@ public class UploadSession extends Entity<UploadSessionID> {
 
     @Override
     public void validate(final ValidationHandler handler) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'validate'");
+
+        if (totalChunks <= 0)
+            handler.append(ValidationError.with("Total chunks must be greater than zero"));
+
+        if (maxIdleTime.isNegative() || maxIdleTime.isZero())
+            handler.append(ValidationError.with("Max idle time must be greater than zero"));
+
+        if (maxBytesPerSecondTransferRatePerChunk <= 0)
+            handler.append(
+                    ValidationError.with("Max bytes per second transfer rate per chunk must be greater than zero"));
+
+        if (maxChunksAtSameTime <= 0)
+            handler.append(ValidationError.with("Max chunks at same time must be greater than zero"));
+
     }
 
     public UploadSession initiateChunkWriting(final Long chunkIndex, final StorageWriter writer) {
 
         if (UploadSessionStatus.CANCELED.equals(this.status))
-            throw new RuntimeException("Cannot write chunk to a canceled upload session: " + this.getId().getValue());
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot write chunk to a canceled upload session."));
 
         final Long writingChunksCount = chunks
                 .stream()
@@ -145,7 +160,7 @@ public class UploadSession extends Entity<UploadSessionID> {
                 .count();
 
         if (writingChunksCount >= maxChunksAtSameTime)
-            throw new RuntimeException("Maximum number of chunks being written reached: " + maxChunksAtSameTime);
+            throw MaxConcurrentChunkWritesReachedException.create(maxChunksAtSameTime);
 
         chunks
                 .stream()
@@ -163,7 +178,10 @@ public class UploadSession extends Entity<UploadSessionID> {
             final InputStream inputStream) {
 
         if (UploadSessionStatus.CANCELED.equals(this.status))
-            throw new RuntimeException("Cannot write chunk to a canceled upload session: " + this.getId().getValue());
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot write chunk to a canceled upload session."));
 
         final StorageKey key = StorageKey.from(getFile(), getId(), chunkIndex);
 
@@ -186,12 +204,16 @@ public class UploadSession extends Entity<UploadSessionID> {
 
         // TODO validar essa regra de negocio
         if (UploadSessionStatus.ACTIVE.equals(this.status))
-            throw new IllegalStateException(
-                    "Cannot mark an active upload session for deletion: " + this.getId().getValue());
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot mark an active upload session for deletion."));
 
         if (UploadSessionStatus.PROCESSING.equals(this.status))
-            throw new IllegalStateException(
-                    "Cannot mark a processing upload session for deletion: " + this.getId().getValue());
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot mark a processing upload session for deletion."));
 
         chunks.forEach(Chunk::markForDeletion);
 
@@ -212,7 +234,7 @@ public class UploadSession extends Entity<UploadSessionID> {
     private Chunk createChunk(final Long index) {
 
         if (index < 0 || index >= totalChunks)
-            throw new IllegalArgumentException("Chunk index out of bounds: " + index);
+            throw InvalidArgumentException.with(Error.with("Chunk index out of bounds: " + index));
 
         final Long size = (index == totalChunks - 1) ? lastChunkSize : chunkSize;
 

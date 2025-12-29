@@ -12,6 +12,7 @@ import java.util.Set;
 import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
+import com.arqivame.storage.domain.exception.NotFoundException;
 import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionChunksPhysicallyDeletedEvent;
@@ -111,10 +112,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File markUploadSessionForDeletion(final UploadSessionID sessionId) {
 
-        final UploadSession uploadSession = uploadSessions.stream()
-                .filter(session -> session.getId().equals(sessionId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No upload session with ID: " + sessionId));
+        final UploadSession uploadSession = fetchUploadSessionById(sessionId);
 
         uploadSession.markForDeletion();
         events.add(FileUploadSessionMarkedForDeletionEvent.create(this, uploadSession));
@@ -171,7 +169,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 .stream()
                 .filter(session -> session.getId().equals(sessionId))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("No upload session with ID: " + sessionId));
+                .orElseThrow(() -> NotFoundException.create(UploadSession.class, sessionId));
     }
 
     public Checksum getChecksum() {

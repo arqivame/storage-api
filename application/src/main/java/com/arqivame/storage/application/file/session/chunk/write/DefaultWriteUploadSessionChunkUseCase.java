@@ -73,7 +73,7 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
         validation.validate(() -> file.initiateChunkWriting(sessionId, chunkIndex, storageService));
         eventDispatcher.notify(fileGateway.update(file));
-        if (validation.hasError())
+        if (validation.hasErrors())
             throw new RuntimeException("Cannot initiate chunk writing: " + validation.getErrors().toString());
 
     }
@@ -88,7 +88,7 @@ public class DefaultWriteUploadSessionChunkUseCase extends WriteUploadSessionChu
 
         validation.validate(() -> file.writeChunk(sessionId, chunkIndex, checksumValue, chunkData));
         eventDispatcher.notify(fileGateway.update(file));
-        if (validation.hasError())
+        if (validation.hasErrors())
             throw new RuntimeException("Cannot write chunk data: " + validation.getErrors().toString());
 
     }

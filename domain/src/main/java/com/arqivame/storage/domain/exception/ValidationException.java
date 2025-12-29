@@ -5,17 +5,16 @@ import java.util.List;
 import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.handler.Notification;
 
-
 public class ValidationException extends SilentDomainException {
 
     private ValidationException(final String message, final List<DomainException.Error> errors) {
         super(message, List.copyOf(errors));
     }
 
-    public static ValidationException with(final String message, final Notification aNotification) {
+    public static ValidationException with(final String message, final Notification notification) {
         return new ValidationException(
                 message,
-                aNotification
+                notification
                         .getErrors()
                         .stream()
                         .map(ValidationError::toDomainError)
