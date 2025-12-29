@@ -16,7 +16,7 @@ import com.arqivame.storage.domain.file.UploadSession;
 
 public class FileUploadSessionCanceledEvent extends Event<FileUploadSessionCanceledEvent.Data> {
 
-    private static final String ENTITY = "file.upload-session";
+    private static final String ENTITY = "file:upload-session";
     private static final String ACTION = "canceled";
     private static final String VERSION = "0.0.1";
 
