@@ -4,9 +4,7 @@ import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.bound
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.digestible;
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.throttled;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Objects;
@@ -35,11 +33,7 @@ public class FileSystemStorageService implements StorageService {
 
         final Path sessionLocation = rootLocation.resolve(fullKey).resolve(lastSegment);
 
-        try {
-            Files.delete(sessionLocation);
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete storage key: " + fullKey, e);
-        }
+        FileSystemUtils.delete(sessionLocation);
 
     }
 
