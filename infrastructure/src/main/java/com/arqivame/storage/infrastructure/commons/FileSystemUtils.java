@@ -37,4 +37,12 @@ public final class FileSystemUtils {
 
     }
 
+    public static void delete(final Path filePath) {
+        try {
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw InternalErrorException.with("Failed to delete file: " + filePath.toString(), e);
+        }
+    }
+
 }
