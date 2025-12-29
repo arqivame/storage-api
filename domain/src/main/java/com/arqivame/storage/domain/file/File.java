@@ -12,6 +12,7 @@ import java.util.Set;
 import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
+import com.arqivame.storage.domain.exception.InvalidStateException;
 import com.arqivame.storage.domain.exception.NotFoundException;
 import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
@@ -19,7 +20,9 @@ import com.arqivame.storage.domain.file.event.FileUploadSessionChunksPhysicallyD
 import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageWriter;
+import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.ValidationHandler;
+import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class File extends AggregateRoot<FileID> implements EventSource {
 
@@ -40,7 +43,10 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         this.size = size;
         this.uploadSessions = Objects.isNull(uploadSessions) ? new HashSet<>() : new HashSet<>(uploadSessions);
 
-        this.events = Objects.isNull(events) ? new java.util.LinkedList<>() : new java.util.LinkedList<>(events);
+        this.events = Objects.isNull(events) ? new LinkedList<>() : new LinkedList<>(events);
+
+        selfValidate();
+
     }
 
     public static File create(
@@ -70,8 +76,14 @@ public class File extends AggregateRoot<FileID> implements EventSource {
     }
 
     @Override
-    public void validate(ValidationHandler handler) {
-        throw new UnsupportedOperationException("Unimplemented method 'validate'");
+    public void validate(final ValidationHandler handler) {
+
+        if (Objects.isNull(size))
+            handler.append(ValidationError.with("File size cannot be null."));
+
+        if (size < 0)
+            handler.append(ValidationError.with("File size must be a non-negative value."));
+
     }
 
     @Override
@@ -186,6 +198,13 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public Queue<Event<?>> getEvents() {
         return new LinkedList<>(events);
+    }
+
+    private void selfValidate() {
+        final Notification notification = Notification.create();
+        validate(notification);
+        if (notification.hasErrors())
+            throw InvalidStateException.with(File.class, notification.getDomainErrors());
     }
 
 }
