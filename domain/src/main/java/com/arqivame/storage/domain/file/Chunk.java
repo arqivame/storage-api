@@ -13,7 +13,9 @@ import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
+import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.ValidationHandler;
+import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class Chunk extends Entity<ChunkID> {
 
@@ -44,6 +46,8 @@ public class Chunk extends Entity<ChunkID> {
         this.waitingForDeletion = waitingForDeletion;
         this.writtenAt = writtenAt;
         this.writer = Optional.ofNullable(writer);
+
+        selfValidate();
     }
 
     public static Chunk create(final Long index, final Long size) {
@@ -80,8 +84,22 @@ public class Chunk extends Entity<ChunkID> {
 
     @Override
     public void validate(final ValidationHandler handler) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'validate'");
+
+        if (Objects.isNull(index))
+            handler.append(ValidationError.with("Chunk index cannot be null."));
+
+        if (index < 0)
+            handler.append(ValidationError.with("Chunk index must be a non-negative value."));
+
+        if (Objects.isNull(size))
+            handler.append(ValidationError.with("Chunk size cannot be null."));
+
+        if (size < 0)
+            handler.append(ValidationError.with("Chunk size must be a non-negative value."));
+
+        if (Objects.isNull(status))
+            handler.append(ValidationError.with("Chunk status cannot be null."));
+
     }
 
     public Chunk assignWriter(final StorageWriter writer) {
@@ -182,6 +200,13 @@ public class Chunk extends Entity<ChunkID> {
 
     public Optional<StorageWriter> getWriter() {
         return writer;
+    }
+
+    private void selfValidate() {
+        final Notification notification = Notification.create();
+        validate(notification);
+        if (notification.hasErrors())
+            throw InvalidStateException.with(Chunk.class, notification.getDomainErrors());
     }
 
 }

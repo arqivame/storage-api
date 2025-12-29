@@ -21,6 +21,12 @@ public class NotFoundException extends SilentDomainException {
                                 identifier.getStringValue()))));
     }
 
+    private <E extends Entity<I>, I extends Identifier<?>> NotFoundException(final Class<E> entityClass) {
+        super(
+                MESSAGE_TEMPLATE.formatted(entityClass.getSimpleName()),
+                List.of(Error.with(MESSAGE_TEMPLATE.formatted(entityClass.getSimpleName()))));
+    }
+
     @SuppressWarnings("unchecked")
     public static <E extends Entity<I>, I extends Identifier<?>> NotFoundException create(final Entity<I> entity) {
         return new NotFoundException(entity.getClass(), entity.getId());
@@ -30,6 +36,10 @@ public class NotFoundException extends SilentDomainException {
             final Class<E> entityClass,
             final I identifier) {
         return new NotFoundException(entityClass, identifier);
+    }
+
+    public static <E extends Entity<I>, I extends Identifier<?>> NotFoundException create(final Class<E> entityClass) {
+        return new NotFoundException(entityClass);
     }
 
 }

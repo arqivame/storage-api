@@ -8,11 +8,11 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.InvalidStateException;
 import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
-import com.arqivame.storage.domain.exception.ValidationException;
-import com.arqivame.storage.domain.exception.DomainException.Error;
+import com.arqivame.storage.domain.exception.NotFoundException;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
@@ -66,10 +66,7 @@ public class UploadSession extends Entity<UploadSessionID> {
 
         this.version = version;
 
-        final Notification notification = Notification.create();
-        validate(notification);
-        if (notification.hasErrors())
-            throw ValidationException.with("Invalid upload session", notification);
+        selfValidate();
 
     }
 
@@ -189,7 +186,7 @@ public class UploadSession extends Entity<UploadSessionID> {
                 .stream()
                 .filter(chunk -> chunk.getIndex().equals(chunkIndex))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Chunk not found: " + chunkIndex))
+                .orElseThrow(() -> NotFoundException.create(Chunk.class))
                 .write(key, inputStream, checksumValue, maxBytesPerSecondTransferRatePerChunk);
 
         return this;
@@ -242,6 +239,13 @@ public class UploadSession extends Entity<UploadSessionID> {
         this.chunks.add(chunk);
 
         return chunk;
+    }
+
+    private void selfValidate() {
+        final Notification notification = Notification.create();
+        validate(notification);
+        if (notification.hasErrors())
+            throw InvalidStateException.with(UploadSession.class, notification.getDomainErrors());
     }
 
     public Boolean isComplete() {
