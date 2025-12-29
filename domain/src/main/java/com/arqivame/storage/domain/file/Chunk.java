@@ -6,10 +6,16 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.arqivame.storage.domain.Entity;
+import com.arqivame.storage.domain.exception.ChunkIntegrityViolationException;
+import com.arqivame.storage.domain.exception.InvalidArgumentException;
+import com.arqivame.storage.domain.exception.InvalidStateException;
+import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
+import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.ValidationHandler;
+import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class Chunk extends Entity<ChunkID> {
 
@@ -19,7 +25,6 @@ public class Chunk extends Entity<ChunkID> {
     private StorageKey storageKey;
     private Boolean waitingForDeletion;
 
-    // TODO precisa? validar
     private Instant writtenAt;
 
     private Optional<StorageWriter> writer;
@@ -41,6 +46,8 @@ public class Chunk extends Entity<ChunkID> {
         this.waitingForDeletion = waitingForDeletion;
         this.writtenAt = writtenAt;
         this.writer = Optional.ofNullable(writer);
+
+        selfValidate();
     }
 
     public static Chunk create(final Long index, final Long size) {
@@ -77,18 +84,33 @@ public class Chunk extends Entity<ChunkID> {
 
     @Override
     public void validate(final ValidationHandler handler) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'validate'");
+
+        if (Objects.isNull(index))
+            handler.append(ValidationError.with("Chunk index cannot be null."));
+
+        if (index < 0)
+            handler.append(ValidationError.with("Chunk index must be a non-negative value."));
+
+        if (Objects.isNull(size))
+            handler.append(ValidationError.with("Chunk size cannot be null."));
+
+        if (size < 0)
+            handler.append(ValidationError.with("Chunk size must be a non-negative value."));
+
+        if (Objects.isNull(status))
+            handler.append(ValidationError.with("Chunk status cannot be null."));
+
     }
 
     public Chunk assignWriter(final StorageWriter writer) {
 
-        if (waitingForDeletion)
-            throw new RuntimeException(
-                    "Cannot assign writer to a chunk marked for deletion: " + this.getId().getValue());
-
         if (Objects.isNull(writer))
-            throw new IllegalArgumentException("Writer cannot be null");
+            throw InvalidArgumentException.with(Error.with("Writer cannot be null"));
+
+        if (waitingForDeletion)
+            throw InvalidStateException.with(
+                    Chunk.class,
+                    Error.with("Cannot assign writer to a chunk marked for deletion: " + this.getId().getValue()));
 
         this.status = ChunkStatus.READY;
         this.writer = Optional.ofNullable(writer);
@@ -102,12 +124,15 @@ public class Chunk extends Entity<ChunkID> {
             final Long bytesPerSecondsWrittenRate) {
 
         if (waitingForDeletion)
-            throw new RuntimeException(
-                    "Cannot write a chunk marked for deletion: " + this.getId().getValue());
+            throw InvalidStateException.with(
+                    Chunk.class,
+                    Error.with("Cannot write a chunk marked for deletion: " + this.getId().getValue()));
 
         if (writer.isEmpty()) {
             this.status = ChunkStatus.FAILED;
-            throw new IllegalStateException("Chunk writer is not assigned");
+            throw InvalidStateException.with(
+                    Chunk.class,
+                    Error.with("Chunk writer is not assigned: " + this.getId().getValue()));
         }
 
         final Checksum streamChecksumValue = writer
@@ -121,7 +146,7 @@ public class Chunk extends Entity<ChunkID> {
 
         if (!streamChecksumValue.equals(checksumValue)) {
             status = ChunkStatus.FAILED;
-            throw new RuntimeException("Checksum mismatch after writing chunk");
+            throw ChunkIntegrityViolationException.create();
         }
 
         this.status = ChunkStatus.WRITTEN;
@@ -175,6 +200,13 @@ public class Chunk extends Entity<ChunkID> {
 
     public Optional<StorageWriter> getWriter() {
         return writer;
+    }
+
+    private void selfValidate() {
+        final Notification notification = Notification.create();
+        validate(notification);
+        if (notification.hasErrors())
+            throw InvalidStateException.with(Chunk.class, notification.getDomainErrors());
     }
 
 }

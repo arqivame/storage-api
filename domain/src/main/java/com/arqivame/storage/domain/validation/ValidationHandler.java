@@ -1,6 +1,10 @@
 package com.arqivame.storage.domain.validation;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.util.List;
+
+import com.arqivame.storage.domain.exception.DomainException;
 
 public interface ValidationHandler {
 
@@ -14,8 +18,17 @@ public interface ValidationHandler {
 
     List<ValidationError> getErrors();
 
-    default boolean hasError() {
+    default boolean hasErrors() {
         return getErrors() != null && !getErrors().isEmpty();
+    }
+
+    default List<DomainException.Error> getDomainErrors() {
+        return requireNonNullElse(
+                getErrors()
+                        .stream()
+                        .map(ValidationError::toDomainError)
+                        .toList(),
+                List.of());
     }
 
     @FunctionalInterface
