@@ -16,7 +16,7 @@ import com.arqivame.storage.domain.file.UploadSession;
 
 public class FileUploadSessionMarkedForDeletionEvent extends Event<FileUploadSessionMarkedForDeletionEvent.Data> {
 
-    private static final String ENTITY = "file.upload-session";
+    private static final String ENTITY = "file:upload-session";
     private static final String ACTION = "marked-for-deletion";
     private static final String VERSION = "0.0.1";
 
