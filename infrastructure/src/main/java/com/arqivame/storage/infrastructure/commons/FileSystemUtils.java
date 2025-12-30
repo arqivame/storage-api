@@ -16,6 +16,10 @@ public final class FileSystemUtils {
     private FileSystemUtils() {
     }
 
+    public static Boolean exists(final Path filePath) {
+        return Files.exists(filePath);
+    }
+
     public static void write(
             final Path outputLocation,
             final InputStream content,

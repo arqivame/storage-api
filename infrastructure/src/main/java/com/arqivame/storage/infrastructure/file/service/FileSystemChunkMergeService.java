@@ -22,7 +22,11 @@ public class FileSystemChunkMergeService implements ChunkMergeService {
     }
 
     @Override
-    public MergeResult mergeChunks(final StorageKey finalFileKey, final Set<ChunkInfo> chunks) {
+    public MergeResult mergeChunks(
+            final StorageKey finalFileKey,
+            final Set<ChunkInfo> chunks,
+            final Long firstChunkSize,
+            final Long lastChunkSize) {
 
         final Path finalFilePath = toPath(finalFileKey);
 
@@ -33,18 +37,29 @@ public class FileSystemChunkMergeService implements ChunkMergeService {
 
         final SequentialIterator<ChunkInfo> iterator = SequentialIterator.of(items);
 
-        try (final FileChannel outputChannel = FileSystemUtils.opeChannel(finalFilePath, StandardOpenOption.CREATE,
+        try (final FileChannel outputChannel = FileSystemUtils.opeChannel(
+                finalFilePath,
+                StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE)) {
 
             while (iterator.hasNext()) {
-                try (final FileChannel inputChannel = FileSystemUtils.opeChannel(
-                        toPath(iterator.next().key()),
-                        StandardOpenOption.READ)) {
-                    FileSystemUtils.append(outputChannel.position(), outputChannel, inputChannel);
-                }
-            }
 
-            // TODO notificar que chunk foi mesclado aqui??
+                final ChunkInfo chunkInfo = iterator.next();
+
+                if (!FileSystemUtils.exists(toPath(chunkInfo.key())))
+                    continue;
+
+                try (final FileChannel inputChannel = FileSystemUtils.opeChannel(
+                        toPath(chunkInfo.key()),
+                        StandardOpenOption.READ)) {
+
+                    final Long offset = (chunkInfo.index() * firstChunkSize);
+                    FileSystemUtils.append(offset, outputChannel, inputChannel);
+
+                }
+
+                FileSystemUtils.delete(toPath(chunkInfo.key()));
+            }
 
         } catch (Exception e) {
             final Set<ChunkInfo> nonMergedChunks = new HashSet<>();
