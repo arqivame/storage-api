@@ -1,6 +1,7 @@
 package com.arqivame.storage.infrastructure.file.service;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,26 +20,45 @@ public class FileSystemChunkMergeService implements ChunkMergeService {
     }
 
     @Override
-    public void mergeChunks(final StorageKey finalFileKey, final Set<ChunkInfo> chunks) {
+    public MergeResult mergeChunks(final StorageKey finalFileKey, final Set<ChunkInfo> chunks) {
 
-        final Path finalFilePath = toPath(rootLocation, finalFileKey);
+        final Path finalFilePath = toPath(finalFileKey);
 
         final Set<SequentialIterator.Item<Path>> items = chunks
                 .stream()
-                .map(chunk -> SequentialIterator.Item.of(toPath(rootLocation, chunk.key()), chunk.index()))
+                .map(chunk -> SequentialIterator.Item.of(toPath(chunk.key()), chunk.index()))
                 .collect(Collectors.toSet());
 
         final SequentialIterator<Path> iterator = SequentialIterator.of(items);
 
-        FileSystemUtils.append(finalFilePath, iterator);
+        try {
+            FileSystemUtils.append(finalFilePath, iterator);
+        } catch (Exception e) {
+            final Set<ChunkInfo> nonMergedChunks = new HashSet<>();
+            iterator.forEachRemaining(item -> nonMergedChunks.add(findChunkInfo(chunks, fromPath(item))));
+            MergeResult.partialMerge(nonMergedChunks);
+        }
 
+        return MergeResult.allMerged();
     }
 
-    private static Path toPath(final Path rootLocation, final StorageKey storageKey) {
-        // TODO ver se mantem a lógica de lastSegment
-        final String fullKey = storageKey.getFullKey();
-        final String lastSegment = storageKey.lastSegment();
-        return rootLocation.resolve(fullKey).resolve(lastSegment);
+    private static ChunkInfo findChunkInfo(final Set<ChunkInfo> chunkInfos, final StorageKey storageKey) {
+        return chunkInfos
+                .stream()
+                .filter(chunkInfo -> chunkInfo.key().equals(storageKey))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Chunk with index "
+                                + storageKey
+                                + " not found in the provided chunks set."));
+    }
+
+    private StorageKey fromPath(final Path path) {
+        return StorageKey.of(rootLocation.relativize(path).toString());
+    }
+
+    private Path toPath(final StorageKey storageKey) {
+        return rootLocation.resolve(storageKey.getFullKey());
     }
 
 }

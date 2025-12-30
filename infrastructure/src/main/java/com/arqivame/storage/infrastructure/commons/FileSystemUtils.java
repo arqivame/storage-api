@@ -17,15 +17,14 @@ public final class FileSystemUtils {
     }
 
     public static void write(
-            final Path location,
-            final String fileName,
+            final Path outputLocation,
             final InputStream content,
             final CopyOption... options) {
 
         if (content == null)
             throw new IllegalArgumentException("Failed to write empty file.");
 
-        final Path destinationFile = location.resolve(fileName).normalize().toAbsolutePath();
+        final Path destinationFile = outputLocation.normalize().toAbsolutePath();
 
         try (InputStream inputStream = content) {
             Files.createDirectories(destinationFile.getParent());
@@ -49,6 +48,9 @@ public final class FileSystemUtils {
 
     public static void append(final Path targetFile, final SequentialIterator<Path> sourceFiles) {
 
+        // TODO melhorar tratamento de erros
+        targetFile.getParent().toFile().mkdirs();
+
         try (final FileChannel outputChannel = FileChannel.open(
                 targetFile,
                 StandardOpenOption.CREATE,
@@ -56,11 +58,7 @@ public final class FileSystemUtils {
 
             while (sourceFiles.hasNext()) {
                 try (final FileChannel inputChannel = FileChannel.open(sourceFiles.next(), StandardOpenOption.READ)) {
-
-                    final Long startPosition = outputChannel.position();// TODO ver se isso ta certo
-                    final Long endPosition = append(startPosition, outputChannel, inputChannel);
-                    outputChannel.position(endPosition);
-
+                    append(outputChannel.position(), outputChannel, inputChannel);
                 }
             }
 
@@ -68,9 +66,11 @@ public final class FileSystemUtils {
             throw InternalErrorException.with("Failed to append file into " + targetFile.toString(), e);
         }
 
+        System.out.println("File appended successfully to " + targetFile.toString());
+
     }
 
-    private static Long append(
+    private static void append(
             final Long startPosition,
             final FileChannel targetChannel,
             final FileChannel sourceChannel) throws Exception {
@@ -83,10 +83,6 @@ public final class FileSystemUtils {
             trasferredBytes += sourceChannel.transferTo(trasferredBytes, inputSize - trasferredBytes, targetChannel);
         }
 
-        final Long endPosition = targetChannel.position() + inputSize;
-        targetChannel.position(endPosition);
-
-        return endPosition;
     }
 
 }

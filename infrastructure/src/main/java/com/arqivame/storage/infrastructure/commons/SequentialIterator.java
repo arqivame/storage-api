@@ -34,7 +34,7 @@ public final class SequentialIterator<T> implements Iterator<T> {
 
     private static <T> void validate(final Set<Item<T>> items) {
 
-        if (Objects.isNull(items) || items.isEmpty())
+        if (items == null || items.isEmpty())
             throw new IllegalArgumentException("Items cannot be null or empty.");
 
         final List<Long> positions = items.stream()
@@ -42,16 +42,14 @@ public final class SequentialIterator<T> implements Iterator<T> {
                 .sorted()
                 .toList();
 
-        if (positions.get(0) != 0L)
-            throw new IllegalArgumentException(
-                    "Sequence must start at position 0, but starts at " + positions.get(0));
-
         for (int i = 1; i < positions.size(); i++) {
-            long expected = positions.get(i - 1) + 1;
+            final long expected = positions.get(i - 1) + 1;
             if (positions.get(i) != expected) {
                 throw new IllegalArgumentException(
-                        "Invalid sequence. Expected position " + expected +
-                                " but found " + positions.get(i));
+                        "Invalid sequence. Expected position "
+                                + expected
+                                + " but found "
+                                + positions.get(i));
             }
         }
     }

@@ -29,9 +29,8 @@ public class FileSystemStorageService implements StorageService {
     public void delete(final StorageKey key) {
 
         final String fullKey = key.getFullKey();
-        final String lastSegment = key.lastSegment();
 
-        final Path sessionLocation = rootLocation.resolve(fullKey).resolve(lastSegment);
+        final Path sessionLocation = rootLocation.resolve(fullKey);
 
         FileSystemUtils.delete(sessionLocation);
 
@@ -46,15 +45,13 @@ public class FileSystemStorageService implements StorageService {
             final Algorithm checksumAlgorithm) {
 
         final String fullKey = key.getFullKey();
-        final String lastSegment = key.lastSegment();
 
-        final Path sessionLocation = rootLocation.resolve(fullKey);
+        final Path storageLocation = rootLocation.resolve(fullKey);
 
         final MessageDigest digest = MessageDigestUtils.create(checksumAlgorithm);
 
         write(
-                sessionLocation,
-                lastSegment,
+                storageLocation,
                 inputStream,
                 sizeInBytes,
                 bytesPerSecondsWrittenRate,
@@ -65,8 +62,7 @@ public class FileSystemStorageService implements StorageService {
     }
 
     private static void write(
-            final Path sessionLocation,
-            final String lastSegment,
+            final Path fileOutputPath,
             final InputStream inputStream,
             final Long sizeInBytes,
             final Long bytesPerSecondsWrittenRate,
@@ -76,10 +72,7 @@ public class FileSystemStorageService implements StorageService {
                 throttled(bounded(inputStream, sizeInBytes), bytesPerSecondsWrittenRate),
                 digest)) {
 
-            FileSystemUtils.write(
-                    sessionLocation,
-                    lastSegment,
-                    is);
+            FileSystemUtils.write(fileOutputPath, is);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to write input stream", e);
