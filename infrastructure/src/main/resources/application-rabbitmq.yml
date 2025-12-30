@@ -39,6 +39,18 @@ spring:
               destination: storage.exchange.error
               routingKeyExpression: "'storage.file:upload-session.marked-for-deletion'"
               queueNameGroupOnly: true
+          ## File Upload Session Processing Initiated Event
+          fileUploadSessionProcessingInitiatedEvent-out-0:
+            producer:
+              exchangeType: topic
+              destination: storage.exchange
+              routingKeyExpression: "'storage.file:upload-session.processing-initiated'"
+          fileUploadSessionProcessingInitiatedEventError-out-0:
+            producer:
+              exchangeType: topic
+              destination: storage.exchange.error
+              routingKeyExpression: "'storage.file:upload-session.processing-initiated'"
+              queueNameGroupOnly: true
           # Incoming RabbitMQ bindings
           ## File Upload Session Canceled Event
           fileUploadSessionCanceledEvent-in-0:
@@ -64,6 +76,19 @@ spring:
               deadLetterQueueName: storage.file:upload-session.marked-for-deletion.queue.wait
               dlqDeadLetterExchange: storage.exchange
               dlqDeadLetterRoutingKey: storage.file:upload-session.marked-for-deletion
+              republishToDlq: false
+              dlqTtl: 5000
+          ## File Upload Session Processing Initiated Event
+          fileUploadSessionProcessingInitiatedEvent-in-0:
+            consumer:
+              exchangeType: topic
+              bindingRoutingKey: storage.file:upload-session.processing-initiated
+              queueNameGroupOnly: true
+              autoBindDlq: true
+              deadLetterExchange: storage.exchange.wait
+              deadLetterQueueName: storage.file:upload-session.processing-initiated.queue.wait
+              dlqDeadLetterExchange: storage.exchange
+              dlqDeadLetterRoutingKey: storage.file:upload-session.processing-initiated
               republishToDlq: false
               dlqTtl: 5000
 

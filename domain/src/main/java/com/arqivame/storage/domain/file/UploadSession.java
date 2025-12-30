@@ -13,6 +13,7 @@ import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.InvalidStateException;
 import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
 import com.arqivame.storage.domain.exception.NotFoundException;
+import com.arqivame.storage.domain.exception.UploadSessionAlreadyProcessingException;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.file.service.StorageWriter;
@@ -215,6 +216,43 @@ public class UploadSession extends Entity<UploadSessionID> {
         chunks.forEach(Chunk::markForDeletion);
 
         waitingForDeletion = true;
+    }
+
+    public void initiateProcessing() {
+
+        if (UploadSessionStatus.PROCESSING.equals(this.status))
+            throw UploadSessionAlreadyProcessingException.create();
+
+        if (UploadSessionStatus.CANCELED.equals(this.status))
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot process a canceled upload session."));
+
+        if (UploadSessionStatus.COMPLETED.equals(this.status))
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot process a completed upload session."));
+
+        if (UploadSessionStatus.DELETED.equals(this.status))
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Cannot process a deleted upload session."));
+
+        this.status = UploadSessionStatus.PROCESSING;
+    }
+
+    public void completeProcessing() {
+
+        if (!UploadSessionStatus.PROCESSING.equals(this.status))
+            throw InvalidStateException
+                    .with(
+                            UploadSession.class,
+                            Error.with("Only processing upload sessions can be completed."));
+
+        this.status = UploadSessionStatus.COMPLETED;
     }
 
     public void physicallyDeleteChunks(final StorageDeleter storageDeleter) {

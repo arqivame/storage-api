@@ -38,6 +38,16 @@ public final class StorageKey {
                 });
     }
 
+    public static StorageKey from(final FileID file) {
+
+        return new StorageKey(
+                new String[] {
+                        "files",
+                        file.getStringValue(),
+                        "data"
+                });
+    }
+
     public static StorageKey of(final String fullKey) {
         if (Objects.isNull(fullKey) || fullKey.isBlank())
             throw InvalidArgumentException.with(Error.with("Full key cannot be null or blank"));

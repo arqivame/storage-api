@@ -1,12 +1,13 @@
 spring:
   cloud:
     function:
-      definition: fileUploadSessionCanceledConsumer;fileUploadSessionMarkedForDeletionConsumer
+      definition: fileUploadSessionCanceledConsumer;fileUploadSessionMarkedForDeletionConsumer;fileUploadSessionProcessingInitiatedConsumer
     stream:
       function:
         bindings:
           fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
           fileUploadSessionMarkedForDeletionConsumer-in-0: fileUploadSessionMarkedForDeletionEvent-in-0
+          fileUploadSessionProcessingInitiatedConsumer-in-0: fileUploadSessionProcessingInitiatedEvent-in-0
       default:
         content-type: application/json
       bindings:
@@ -25,6 +26,13 @@ spring:
           destination: storage.exchange.error
           producer:
             requiredGroups: storage.file:upload-session.marked-for-deletion.queue.error
+        ## File Upload Session Processing Initiated Event
+        fileUploadSessionProcessingInitiatedEvent-out-0:
+          destination: storage.exchange
+        fileUploadSessionProcessingInitiatedEventError-out-0:
+          destination: storage.exchange.error
+          producer:
+            requiredGroups: storage.file:upload-session.processing-initiated.queue.error
         # Incoming bindings
         ## File Upload Session Canceled Event
         fileUploadSessionCanceledEvent-in-0:
@@ -40,3 +48,12 @@ spring:
           consumer:
             max-attempts: 1
             concurrency: ${application.messaging.consumer.file-upload-session-marked-for-deletion-event.concurrency}
+        ## File Upload Session Processing Initiated Event
+        fileUploadSessionProcessingInitiatedEvent-in-0:
+          destination: storage.exchange
+          group: storage.file:upload-session.processing-initiated.queue
+          consumer:
+            max-attempts: 1
+            concurrency: ${application.messaging.consumer.file-upload-session-processing-initiated-event.concurrency}
+
+
