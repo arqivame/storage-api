@@ -1,6 +1,8 @@
 package com.arqivame.storage.infrastructure.file.service;
 
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -24,37 +26,33 @@ public class FileSystemChunkMergeService implements ChunkMergeService {
 
         final Path finalFilePath = toPath(finalFileKey);
 
-        final Set<SequentialIterator.Item<Path>> items = chunks
+        final Set<SequentialIterator.Item<ChunkInfo>> items = chunks
                 .stream()
-                .map(chunk -> SequentialIterator.Item.of(toPath(chunk.key()), chunk.index()))
+                .map(chunk -> SequentialIterator.Item.of(chunk, chunk.index()))
                 .collect(Collectors.toSet());
 
-        final SequentialIterator<Path> iterator = SequentialIterator.of(items);
+        final SequentialIterator<ChunkInfo> iterator = SequentialIterator.of(items);
 
-        try {
-            FileSystemUtils.append(finalFilePath, iterator);
+        try (final FileChannel outputChannel = FileSystemUtils.opeChannel(finalFilePath, StandardOpenOption.CREATE,
+                StandardOpenOption.WRITE)) {
+
+            while (iterator.hasNext()) {
+                try (final FileChannel inputChannel = FileSystemUtils.opeChannel(
+                        toPath(iterator.next().key()),
+                        StandardOpenOption.READ)) {
+                    FileSystemUtils.append(outputChannel.position(), outputChannel, inputChannel);
+                }
+            }
+
+            // TODO notificar que chunk foi mesclado aqui??
+
         } catch (Exception e) {
             final Set<ChunkInfo> nonMergedChunks = new HashSet<>();
-            iterator.forEachRemaining(item -> nonMergedChunks.add(findChunkInfo(chunks, fromPath(item))));
+            iterator.forEachRemaining(item -> nonMergedChunks.add(item));
             MergeResult.partialMerge(nonMergedChunks);
         }
 
         return MergeResult.allMerged();
-    }
-
-    private static ChunkInfo findChunkInfo(final Set<ChunkInfo> chunkInfos, final StorageKey storageKey) {
-        return chunkInfos
-                .stream()
-                .filter(chunkInfo -> chunkInfo.key().equals(storageKey))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "Chunk with index "
-                                + storageKey
-                                + " not found in the provided chunks set."));
-    }
-
-    private StorageKey fromPath(final Path path) {
-        return StorageKey.of(rootLocation.relativize(path).toString());
     }
 
     private Path toPath(final StorageKey storageKey) {

@@ -31,7 +31,7 @@ public final class FileSystemUtils {
             Files.copy(inputStream, destinationFile, options);
 
         } catch (FileAlreadyExistsException e) {
-            throw new IllegalArgumentException("File already exists: " + destinationFile.toString(), e);
+            throw InternalErrorException.with("File already exists: " + destinationFile.toString(), e);
         } catch (IOException e) {
             throw InternalErrorException.with("Failed to write file.", e);
         }
@@ -46,41 +46,34 @@ public final class FileSystemUtils {
         }
     }
 
-    public static void append(final Path targetFile, final SequentialIterator<Path> sourceFiles) {
+    public static FileChannel opeChannel(final Path path, final StandardOpenOption... options) {
+        try {
+            return FileChannel.open(path, options);
+        } catch (IOException e) {
+            throw InternalErrorException.with("Failed to open file channel: " + path.toString(), e);
+        }
+    }
 
-        // TODO melhorar tratamento de erros
-        targetFile.getParent().toFile().mkdirs();
+    public static void append(
+            final Long startPosition,
+            final FileChannel targetChannel,
+            final FileChannel sourceChannel) {
 
-        try (final FileChannel outputChannel = FileChannel.open(
-                targetFile,
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE)) {
+        try {
 
-            while (sourceFiles.hasNext()) {
-                try (final FileChannel inputChannel = FileChannel.open(sourceFiles.next(), StandardOpenOption.READ)) {
-                    append(outputChannel.position(), outputChannel, inputChannel);
-                }
+            targetChannel.position(startPosition);
+
+            Long inputSize = sourceChannel.size();
+            Long trasferredBytes = 0L;
+            while (trasferredBytes < inputSize) {
+                trasferredBytes += sourceChannel.transferTo(
+                        trasferredBytes,
+                        inputSize - trasferredBytes,
+                        targetChannel);
             }
 
         } catch (Exception e) {
-            throw InternalErrorException.with("Failed to append file into " + targetFile.toString(), e);
-        }
-
-        System.out.println("File appended successfully to " + targetFile.toString());
-
-    }
-
-    private static void append(
-            final Long startPosition,
-            final FileChannel targetChannel,
-            final FileChannel sourceChannel) throws Exception {
-
-        targetChannel.position(startPosition);
-
-        Long inputSize = sourceChannel.size();
-        Long trasferredBytes = 0L;
-        while (trasferredBytes < inputSize) {
-            trasferredBytes += sourceChannel.transferTo(trasferredBytes, inputSize - trasferredBytes, targetChannel);
+            throw InternalErrorException.with("Failed to append file channels.", e);
         }
 
     }
