@@ -25,10 +25,7 @@ public class FileSystemChunkMergeService implements ChunkMergeService {
     public MergeResult mergeChunks(
             final StorageKey finalFileKey,
             final Set<ChunkInfo> chunks,
-            final Long firstChunkSize,
-            final Long lastChunkSize) {
-
-        final Path finalFilePath = toPath(finalFileKey);
+            final Long firstChunkSize) {
 
         final Set<SequentialIterator.Item<ChunkInfo>> items = chunks
                 .stream()
@@ -38,7 +35,7 @@ public class FileSystemChunkMergeService implements ChunkMergeService {
         final SequentialIterator<ChunkInfo> iterator = SequentialIterator.of(items);
 
         try (final FileChannel outputChannel = FileSystemUtils.opeChannel(
-                finalFilePath,
+                toPath(finalFileKey),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE)) {
 

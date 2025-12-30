@@ -23,3 +23,6 @@ application:
       file-upload-session-marked-for-deletion-event:
         concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_MARKED_FOR_DELETION_CONCURRENCY:1}
         max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_MARKED_FOR_DELETION_MAX_ATTEMPTS:1}
+      file-upload-session-processing-initiated-event:
+        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_PROCESSING_INITIATED_CONCURRENCY:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_PROCESSING_INITIATED_MAX_ATTEMPTS:1}

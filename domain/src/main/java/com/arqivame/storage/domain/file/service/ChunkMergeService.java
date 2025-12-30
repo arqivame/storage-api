@@ -10,17 +10,17 @@ import com.arqivame.storage.domain.file.Chunk;
 @FunctionalInterface
 public interface ChunkMergeService {
 
-    MergeResult mergeChunks(StorageKey finalFileKey, Set<ChunkInfo> chunks, Long firstChunkSize, Long lastChunkSize);
+    MergeResult mergeChunks(StorageKey finalFileKey, Set<ChunkInfo> chunks, Long firstChunkSize);
 
-    public record ChunkInfo(StorageKey key, Long size, Long index) {
+    public record ChunkInfo(StorageKey key, Long index) {
 
         public static ChunkInfo with(final Chunk chunk) {
             return new ChunkInfo(
                     chunk.getStorageKey()
                             .orElseThrow(
-                                    () -> InvalidStateException.with(Chunk.class,
+                                    () -> InvalidStateException.with(
+                                            Chunk.class,
                                             Error.with("Storage key is not set"))),
-                    chunk.getSize(),
                     chunk.getIndex());
         }
 

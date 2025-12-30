@@ -20,6 +20,8 @@ import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSess
 import com.arqivame.storage.application.file.session.chunk.write.WriteUploadSessionChunkUseCase;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionInput;
 import com.arqivame.storage.application.file.session.create.CreateUploadSessionUseCase;
+import com.arqivame.storage.application.file.session.process.initiate.InitiateUploadSessionProcessingInput;
+import com.arqivame.storage.application.file.session.process.initiate.InitiateUploadSessionProcessingUseCase;
 import com.arqivame.storage.domain.file.Checksum;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,14 +33,17 @@ public class TestController {
     private final CreateUploadSessionUseCase createUploadSessionUseCase;
     private final WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase;
     private final CancelUploadSessionUseCase cancelUploadSessionUseCase;
+    private final InitiateUploadSessionProcessingUseCase initiateUploadSessionProcessingUseCase;
 
     public TestController(
             CreateUploadSessionUseCase createUploadSessionUseCase,
             WriteUploadSessionChunkUseCase writeUploadSessionChunkUseCase,
-            CancelUploadSessionUseCase cancelUploadSessionUseCase) {
+            CancelUploadSessionUseCase cancelUploadSessionUseCase,
+            InitiateUploadSessionProcessingUseCase initiateUploadSessionProcessingUseCase) {
         this.createUploadSessionUseCase = createUploadSessionUseCase;
         this.writeUploadSessionChunkUseCase = writeUploadSessionChunkUseCase;
         this.cancelUploadSessionUseCase = cancelUploadSessionUseCase;
+        this.initiateUploadSessionProcessingUseCase = initiateUploadSessionProcessingUseCase;
     }
 
     @PutMapping(value = "{fileId}/sessions/{sessionId}/chunks/{chunkPart}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
@@ -75,6 +80,17 @@ public class TestController {
         cancelUploadSessionUseCase.execute(input);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "{fileId}/sessions/{sessionId}/complete")
+    public ResponseEntity<?> completeSession(
+            @PathVariable UUID fileId,
+            @PathVariable UUID sessionId) throws IOException {
+
+        initiateUploadSessionProcessingUseCase.execute(new InitiateUploadSessionProcessingInput(fileId, sessionId));
+
+        return ResponseEntity.ok().build();
+
     }
 
 }

@@ -18,6 +18,7 @@ import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionChunksPhysicallyDeletedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent;
+import com.arqivame.storage.domain.file.event.FileUploadSessionProcessingInitiatedEvent;
 import com.arqivame.storage.domain.file.service.StorageDeleter;
 import com.arqivame.storage.domain.file.service.StorageWriter;
 import com.arqivame.storage.domain.validation.ValidationError;
@@ -176,7 +177,28 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return this;
     }
 
-    private UploadSession fetchUploadSessionById(final UploadSessionID sessionId) {
+    public File initUploadSessionProcessing(final UploadSessionID sessionId) {
+
+        final UploadSession session = fetchUploadSessionById(sessionId);
+        session.initiateProcessing();
+        events.add(FileUploadSessionProcessingInitiatedEvent.create(this, session));
+
+        return this;
+
+    }
+
+    public File completeUploadSessionProcessing(final UploadSessionID sessionId) {
+
+        final UploadSession session = fetchUploadSessionById(sessionId);
+        session.completeProcessing();
+        // Se colocar evento podemos até fazer um webhook ou notificação aqui
+        // events.add(FileUploadSessionProcessingCompletedEvent.create(this, session));
+
+        return this;
+
+    }
+
+    public UploadSession fetchUploadSessionById(final UploadSessionID sessionId) {
         return uploadSessions
                 .stream()
                 .filter(session -> session.getId().equals(sessionId))
