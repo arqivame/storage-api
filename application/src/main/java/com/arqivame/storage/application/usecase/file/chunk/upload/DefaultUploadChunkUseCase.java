@@ -22,16 +22,16 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
     private final FileGateway fileGateway;
 
-    private final StorageWriter storageService;
+    private final StorageWriter storageWriter;
 
     private final ConcurrencyTracker concurrencyTracker;
 
     public DefaultUploadChunkUseCase(
             final FileGateway fileGateway,
-            final StorageWriter storageService,
+            final StorageWriter storageWriter,
             final ConcurrencyTracker concurrencyTracker) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
-        this.storageService = Objects.requireNonNull(storageService);
+        this.storageWriter = Objects.requireNonNull(storageWriter);
         this.concurrencyTracker = Objects.requireNonNull(concurrencyTracker);
     }
 
@@ -55,7 +55,7 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
         try {
             final StorageKey chunkStorageKey = file.getStorageKey().subKey("upload", "chunks", chunkIndex.toString());
 
-            final Checksum writeResult = storageService.write(
+            final Checksum writeResult = storageWriter.write(
                     chunkStorageKey,
                     chunkData,
                     chunkSize,
