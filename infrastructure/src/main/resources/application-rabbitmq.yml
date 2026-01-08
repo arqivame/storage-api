@@ -15,80 +15,56 @@ spring:
       rabbit:
         bindings:
           # Outgoing RabbitMQ bindings
-          ## File Upload Session Canceled Event
-          fileUploadSessionCanceledEvent-out-0:
+          ## File Upload Session Completed Event
+          fileUploadSessionCompletedEvent-out-0:
             producer:
               exchangeType: topic
               destination: storage.exchange
-              routingKeyExpression: "'storage.file:upload-session.canceled'"
-          fileUploadSessionCanceledEventError-out-0:
+              routingKeyExpression: "'storage.file:upload-session.completed'"
+          fileUploadSessionCompletedEventError-out-0:
             producer:
               exchangeType: topic
               destination: storage.exchange.error
-              routingKeyExpression: "'storage.file:upload-session.canceled'"
+              routingKeyExpression: "'storage.file:upload-session.completed'"
               queueNameGroupOnly: true
-          ## File Upload Session Marked For Deletion Event
-          fileUploadSessionMarkedForDeletionEvent-out-0:
+          ## File Upload Session Aborted Event
+          fileUploadSessionAbortedEvent-out-0:
             producer:
               exchangeType: topic
               destination: storage.exchange
-              routingKeyExpression: "'storage.file:upload-session.marked-for-deletion'"
-          fileUploadSessionMarkedForDeletionEventError-out-0:
+              routingKeyExpression: "'storage.file:upload-session.aborted'"
+          fileUploadSessionAbortedEventError-out-0:
             producer:
               exchangeType: topic
               destination: storage.exchange.error
-              routingKeyExpression: "'storage.file:upload-session.marked-for-deletion'"
+              routingKeyExpression: "'storage.file:upload-session.aborted'"
               queueNameGroupOnly: true
-          ## File Upload Session Processing Initiated Event
-          fileUploadSessionProcessingInitiatedEvent-out-0:
-            producer:
-              exchangeType: topic
-              destination: storage.exchange
-              routingKeyExpression: "'storage.file:upload-session.processing-initiated'"
-          fileUploadSessionProcessingInitiatedEventError-out-0:
-            producer:
-              exchangeType: topic
-              destination: storage.exchange.error
-              routingKeyExpression: "'storage.file:upload-session.processing-initiated'"
-              queueNameGroupOnly: true
+          # ---------------------------------------
           # Incoming RabbitMQ bindings
-          ## File Upload Session Canceled Event
-          fileUploadSessionCanceledEvent-in-0:
+          ## File Upload Session Completed Event
+          fileUploadSessionCompletedEvent-in-0:
             consumer:
               exchangeType: topic
-              bindingRoutingKey: storage.file:upload-session.canceled
+              bindingRoutingKey: storage.file:upload-session.completed
               queueNameGroupOnly: true
               autoBindDlq: true
               deadLetterExchange: storage.exchange.wait
-              deadLetterQueueName: storage.file:upload-session.canceled.queue.wait
+              deadLetterQueueName: storage.file:upload-session.completed.queue.wait
               dlqDeadLetterExchange: storage.exchange
-              dlqDeadLetterRoutingKey: storage.file:upload-session.canceled
+              dlqDeadLetterRoutingKey: storage.file:upload-session.completed
               republishToDlq: false
               dlqTtl: 5000
-          ## File Upload Session Marked For Deletion Event
-          fileUploadSessionMarkedForDeletionEvent-in-0:
+          ## File Upload Session Aborted Event
+          fileUploadSessionAbortedEvent-in-0:
             consumer:
               exchangeType: topic
-              bindingRoutingKey: storage.file:upload-session.marked-for-deletion
+              bindingRoutingKey: storage.file:upload-session.aborted
               queueNameGroupOnly: true
               autoBindDlq: true
               deadLetterExchange: storage.exchange.wait
-              deadLetterQueueName: storage.file:upload-session.marked-for-deletion.queue.wait
+              deadLetterQueueName: storage.file:upload-session.aborted.queue.wait
               dlqDeadLetterExchange: storage.exchange
-              dlqDeadLetterRoutingKey: storage.file:upload-session.marked-for-deletion
-              republishToDlq: false
-              dlqTtl: 5000
-          ## File Upload Session Processing Initiated Event
-          fileUploadSessionProcessingInitiatedEvent-in-0:
-            consumer:
-              exchangeType: topic
-              bindingRoutingKey: storage.file:upload-session.processing-initiated
-              queueNameGroupOnly: true
-              autoBindDlq: true
-              deadLetterExchange: storage.exchange.wait
-              deadLetterQueueName: storage.file:upload-session.processing-initiated.queue.wait
-              dlqDeadLetterExchange: storage.exchange
-              dlqDeadLetterRoutingKey: storage.file:upload-session.processing-initiated
+              dlqDeadLetterRoutingKey: storage.file:upload-session.aborted
               republishToDlq: false
               dlqTtl: 5000
 

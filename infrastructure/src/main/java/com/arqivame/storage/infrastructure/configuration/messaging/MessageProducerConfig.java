@@ -8,8 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionAbortedMessage;
-import com.arqivame.storage.infrastructure.file.model.FileUploadSessionMarkedForDeletionMessage;
-import com.arqivame.storage.infrastructure.file.model.FileUploadSessionProcessingInitiatedMessage;
+import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCompletedMessage;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 import com.arqivame.storage.infrastructure.messaging.producer.springcloud.SpringCloudMessageProducer;
 
@@ -24,35 +23,24 @@ public class MessageProducerConfig {
 
     @Bean
     @Primary
-    MessageProducer<FileUploadSessionAbortedMessage> fileUploadSessionCanceledEvent() {
-        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCanceledEvent-out-0");
+    MessageProducer<FileUploadSessionCompletedMessage> fileUploadSessionCompletedEvent() {
+        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCompletedEvent-out-0");
     }
 
     @Bean
-    MessageProducer<FileUploadSessionAbortedMessage> fileUploadSessionCanceledEventError() {
-        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCanceledEventError-out-0");
-    }
-
-    @Bean
-    @Primary
-    MessageProducer<FileUploadSessionMarkedForDeletionMessage> fileUploadSessionMarkedForDeletionEvent() {
-        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionMarkedForDeletionEvent-out-0");
-    }
-
-    @Bean
-    MessageProducer<FileUploadSessionMarkedForDeletionMessage> fileUploadSessionMarkedForDeletionEventError() {
-        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionMarkedForDeletionEventError-out-0");
+    MessageProducer<FileUploadSessionCompletedMessage> fileUploadSessionCompletedEventError() {
+        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCompletedEventError-out-0");
     }
 
     @Bean
     @Primary
-    MessageProducer<FileUploadSessionProcessingInitiatedMessage> fileUploadSessionProcessingInitiatedEvent() {
-        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionProcessingInitiatedEvent-out-0");
+    MessageProducer<FileUploadSessionAbortedMessage> fileUploadSessionAbortedEvent() {
+        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionAbortedEvent-out-0");
     }
 
     @Bean
-    MessageProducer<FileUploadSessionProcessingInitiatedMessage> fileUploadSessionProcessingInitiatedEventError() {
-        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionProcessingInitiatedEventError-out-0");
+    MessageProducer<FileUploadSessionAbortedMessage> fileUploadSessionAbortedEventError() {
+        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionAbortedEventError-out-0");
     }
 
 }

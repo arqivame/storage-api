@@ -1,59 +1,44 @@
 spring:
   cloud:
     function:
-      definition: fileUploadSessionCanceledConsumer;fileUploadSessionMarkedForDeletionConsumer;fileUploadSessionProcessingInitiatedConsumer
+      definition: fileUploadSessionCompletedConsumer;fileUploadSessionAbortedConsumer
     stream:
       function:
         bindings:
-          fileUploadSessionCanceledConsumer-in-0: fileUploadSessionCanceledEvent-in-0
-          fileUploadSessionMarkedForDeletionConsumer-in-0: fileUploadSessionMarkedForDeletionEvent-in-0
-          fileUploadSessionProcessingInitiatedConsumer-in-0: fileUploadSessionProcessingInitiatedEvent-in-0
+          fileUploadSessionCompletedConsumer-in-0: fileUploadSessionCompletedEvent-in-0
+          fileUploadSessionAbortedConsumer-in-0: fileUploadSessionAbortedEvent-in-0
       default:
         content-type: application/json
       bindings:
         # Outgoing bindings
-        ## File Upload Session Canceled Event
-        fileUploadSessionCanceledEvent-out-0:
+        ## File Upload Session Completed Event
+        fileUploadSessionCompletedEvent-out-0:
           destination: storage.exchange
-        fileUploadSessionCanceledEventError-out-0:
+        fileUploadSessionCompletedEventError-out-0:
           destination: storage.exchange.error
           producer:
-            requiredGroups: storage.file:upload-session.canceled.queue.error
-        ## File Upload Session Marked For Deletion Event
-        fileUploadSessionMarkedForDeletionEvent-out-0:
+            requiredGroups: storage.file:upload-session.completed.queue.error
+        ## File Upload Session Aborted Event
+        fileUploadSessionAbortedEvent-out-0:
           destination: storage.exchange
-        fileUploadSessionMarkedForDeletionEventError-out-0:
+        fileUploadSessionAbortedEventError-out-0:
           destination: storage.exchange.error
           producer:
-            requiredGroups: storage.file:upload-session.marked-for-deletion.queue.error
-        ## File Upload Session Processing Initiated Event
-        fileUploadSessionProcessingInitiatedEvent-out-0:
-          destination: storage.exchange
-        fileUploadSessionProcessingInitiatedEventError-out-0:
-          destination: storage.exchange.error
-          producer:
-            requiredGroups: storage.file:upload-session.processing-initiated.queue.error
+            requiredGroups: storage.file:upload-session.aborted.queue.error
+        # ---------------------------------------
         # Incoming bindings
-        ## File Upload Session Canceled Event
-        fileUploadSessionCanceledEvent-in-0:
+        ## File Upload Session Completed Event
+        fileUploadSessionCompletedEvent-in-0:
           destination: storage.exchange
-          group: storage.file:upload-session.canceled.queue
+          group: storage.file:upload-session.completed.queue
           consumer:
             max-attempts: 1
-            concurrency: ${application.messaging.consumer.file-upload-session-canceled-event.concurrency}
-        ## File Upload Session Marked For Deletion Event
-        fileUploadSessionMarkedForDeletionEvent-in-0:
+            concurrency: ${application.messaging.consumer.file-upload-session-completed-event.concurrency}
+        ## File Upload Session Aborted Event
+        fileUploadSessionAbortedEvent-in-0:
           destination: storage.exchange
-          group: storage.file:upload-session.marked-for-deletion.queue
+          group: storage.file:upload-session.aborted.queue
           consumer:
             max-attempts: 1
-            concurrency: ${application.messaging.consumer.file-upload-session-marked-for-deletion-event.concurrency}
-        ## File Upload Session Processing Initiated Event
-        fileUploadSessionProcessingInitiatedEvent-in-0:
-          destination: storage.exchange
-          group: storage.file:upload-session.processing-initiated.queue
-          consumer:
-            max-attempts: 1
-            concurrency: ${application.messaging.consumer.file-upload-session-processing-initiated-event.concurrency}
-
-
+            concurrency: ${application.messaging.consumer.file-upload-session-aborted-event.concurrency}
+        # ---------------------------------------
