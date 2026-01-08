@@ -5,8 +5,8 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ChunkJpaRepository extends JpaRepository<ChunkJpaEntity, UUID> {
+public interface ChunkJpaRepository extends JpaRepository<ChunkJpaEntity, ChunkJpaID> {
 
-    Set<ChunkJpaEntity> findAllBySessionId(UUID sessionId);
+    Set<ChunkJpaEntity> findAllByFileId(UUID fileId);
 
 }

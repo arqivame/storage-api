@@ -6,6 +6,7 @@ import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.throt
 
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.Objects;
 
@@ -72,7 +73,7 @@ public class FileSystemStorageService implements StorageService {
                 throttled(bounded(inputStream, sizeInBytes), bytesPerSecondsWrittenRate),
                 digest)) {
 
-            FileSystemUtils.write(fileOutputPath, is);
+            FileSystemUtils.write(fileOutputPath, is, StandardCopyOption.REPLACE_EXISTING);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to write input stream", e);

@@ -1,7 +1,5 @@
 package com.arqivame.storage.domain.file;
 
-import java.io.InputStream;
-import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
@@ -13,36 +11,53 @@ import com.arqivame.storage.domain.AggregateRoot;
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
 import com.arqivame.storage.domain.exception.InvalidStateException;
-import com.arqivame.storage.domain.exception.NotFoundException;
 import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
-import com.arqivame.storage.domain.file.event.FileUploadSessionCanceledEvent;
-import com.arqivame.storage.domain.file.event.FileUploadSessionChunksPhysicallyDeletedEvent;
-import com.arqivame.storage.domain.file.event.FileUploadSessionMarkedForDeletionEvent;
-import com.arqivame.storage.domain.file.event.FileUploadSessionProcessingInitiatedEvent;
-import com.arqivame.storage.domain.file.service.StorageDeleter;
-import com.arqivame.storage.domain.file.service.StorageWriter;
+import com.arqivame.storage.domain.file.event.FileBecameAvailableEvent;
+import com.arqivame.storage.domain.file.event.FileChunksClearedEvent;
+import com.arqivame.storage.domain.file.event.FileCreatedEvent;
+import com.arqivame.storage.domain.file.event.FileUploadSessionAbortedEvent;
+import com.arqivame.storage.domain.file.event.FileUploadSessionCompletedEvent;
+import com.arqivame.storage.domain.file.event.FileUploadSessionOpenedEvent;
+import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class File extends AggregateRoot<FileID> implements EventSource {
 
+    private static final String STORAGE_KEY_PREFIX = "files";
+
+    private final StorageKey storageKey;
     private final Checksum checksum;
     private final Long size;
-    private final Set<UploadSession> uploadSessions;
+
+    private FileStatus status;
+
+    private Optional<Session> uploadSession;
+    private final Set<Chunk> uploadedChunks;
+
+    private Optional<Session> downloadSession;
 
     private final Queue<Event<?>> events;
 
     private File(
             final FileID id,
+            final StorageKey storageKey,
             final Checksum checksum,
             final Long size,
-            final Set<UploadSession> uploadSessions,
+            final FileStatus status,
+            final Optional<Session> uploadSession,
+            final Set<Chunk> uploadedChunks,
+            final Optional<Session> downloadSession,
             final Queue<Event<?>> events) {
         super(id);
+        this.storageKey = storageKey;
         this.checksum = checksum;
         this.size = size;
-        this.uploadSessions = Objects.isNull(uploadSessions) ? new HashSet<>() : new HashSet<>(uploadSessions);
+        this.status = status;
+        this.uploadSession = uploadSession;
+        this.uploadedChunks = Objects.isNull(uploadedChunks) ? new HashSet<>() : new HashSet<>(uploadedChunks);
+        this.downloadSession = downloadSession;
 
         this.events = Objects.isNull(events) ? new LinkedList<>() : new LinkedList<>(events);
 
@@ -50,30 +65,47 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     }
 
+    public static File with(
+            final FileID id,
+            final StorageKey storageKey,
+            final Checksum checksum,
+            final Long size,
+            final FileStatus status,
+            final Optional<Session> uploadSession,
+            final Set<Chunk> uploadedChunks,
+            final Optional<Session> downloadSession,
+            final Queue<Event<?>> events) {
+        return new File(
+                id,
+                storageKey,
+                checksum,
+                size,
+                status,
+                uploadSession,
+                uploadedChunks,
+                downloadSession,
+                events);
+    }
+
     public static File create(
             final FileID id,
             final Long size,
             final Checksum checksum) {
-        return new File(
-                id,
-                checksum,
-                size,
-                Set.of(),
-                new LinkedList<>());
-    }
 
-    public static File with(
-            final FileID id,
-            final Checksum checksum,
-            final Long size,
-            final Set<UploadSession> uploadSessions,
-            final Queue<Event<?>> events) {
-        return new File(
+        final File file = new File(
                 id,
+                StorageKey.create(STORAGE_KEY_PREFIX, id),
                 checksum,
                 size,
-                uploadSessions,
-                events);
+                FileStatus.UPLOADING,
+                Optional.empty(),
+                Set.of(),
+                Optional.empty(),
+                new LinkedList<>());
+
+        file.events.add(FileCreatedEvent.create(file));
+
+        return file;
     }
 
     @Override
@@ -81,8 +113,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
         if (Objects.isNull(size))
             handler.append(ValidationError.with("File size cannot be null."));
-
-        if (size < 0)
+        else if (size < 0)
             handler.append(ValidationError.with("File size must be a non-negative value."));
 
     }
@@ -92,118 +123,102 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return Optional.ofNullable(this.events.poll());
     }
 
-    public UploadSessionID openUploadSession(
-            final Long totalChunks,
+    public File openUploadSession(
+            final Integer totalChunks,
             final Long chunkSize,
             final Long lastChunkSize,
-            final Duration maxIdleTime,
             final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
-        final Boolean hasAnySessionActive = uploadSessions
-                .stream()
-                .map(UploadSession::getStatus)
-                .anyMatch(status -> UploadSessionStatus.ACTIVE.equals(status));
+        final Boolean hasActiveUploadSession = uploadSession.isPresent();
 
-        if (hasAnySessionActive)
+        if (hasActiveUploadSession)
             throw UploadSessionAlreadyOpenException.create();
 
-        final UploadSession session = UploadSession.create(
-                this,
+        final Session session = Session.create(
                 totalChunks,
                 chunkSize,
                 lastChunkSize,
-                maxIdleTime,
                 maxBytesPerSecondTransferRatePerChunk,
                 maxChunksAtSameTime);
 
-        uploadSessions.add(session);
+        uploadSession = Optional.of(session);
 
-        return session.getId();
+        events.add(FileUploadSessionOpenedEvent.create(this));
+
+        return this;
 
     }
 
-    public File markUploadSessionForDeletion(final UploadSessionID sessionId) {
+    public File completeUploadSession() {
 
-        final UploadSession uploadSession = fetchUploadSessionById(sessionId);
+        if (uploadSession.isEmpty())
+            throw new IllegalStateException("No active upload session to complete.");
 
-        uploadSession.markForDeletion();
-        events.add(FileUploadSessionMarkedForDeletionEvent.create(this, uploadSession));
+        if (uploadedChunks.size() < uploadSession.get().totalChunks())
+            throw new IllegalStateException("Cannot complete upload session: not all chunks have been uploaded."); // TODO
+                                                                                                                   // exception
+
+        uploadSession = Optional.empty();
+        events.add(FileUploadSessionCompletedEvent.create(this));
 
         return this;
     }
 
-    public File physicallyDeleteUploadSession(final UploadSessionID sessionId, final StorageDeleter storageDeleter) {
+    public File abortUploadSession() {
 
-        final UploadSession uploadSession = fetchUploadSessionById(sessionId);
-
-        uploadSession.physicallyDeleteChunks(storageDeleter);
-
-        events.add(FileUploadSessionChunksPhysicallyDeletedEvent.create(this, uploadSession));
-
-        return this;
-    }
-
-    public File initiateChunkWriting(
-            final UploadSessionID sessionId,
-            final Long chunkIndex,
-            final StorageWriter writer) {
-
-        fetchUploadSessionById(sessionId).initiateChunkWriting(chunkIndex, writer);
-
-        return this;
-    }
-
-    public File writeChunk(
-            final UploadSessionID sessionId,
-            final Long chunkIndex,
-            final Checksum checksum,
-            final InputStream chunkData) {
-
-        fetchUploadSessionById(sessionId).writeChunk(chunkIndex, checksum, chunkData);
-
-        return this;
-    }
-
-    public File cancelUploadSession(final UploadSessionID sessionId) {
-
-        final UploadSession canceledSession = fetchUploadSessionById(sessionId);
-
-        if (UploadSessionStatus.CANCELED.equals(canceledSession.getStatus()))
+        if (uploadSession.isEmpty())
             return this;
 
-        events.add(FileUploadSessionCanceledEvent.create(this, canceledSession.cancel()));
+        uploadSession = Optional.empty();
+        // uploadedChunks.clear();
+        events.add(FileUploadSessionAbortedEvent.create(this));
 
         return this;
     }
 
-    public File initUploadSessionProcessing(final UploadSessionID sessionId) {
+    public File appendUploadChunk(final Chunk chunk) {
 
-        final UploadSession session = fetchUploadSessionById(sessionId);
-        session.initiateProcessing();
-        events.add(FileUploadSessionProcessingInitiatedEvent.create(this, session));
+        if (FileStatus.AVAILABLE.equals(this.status))
+            throw new IllegalStateException("Cannot append chunk to an available file.");
+
+        this.uploadedChunks.removeIf(c -> c.index().equals(chunk.index()));
+        this.uploadedChunks.add(chunk);
+        return this;
+    }
+
+    public File clearUploadedChunks() {
+
+        if (uploadedChunks.isEmpty())
+            return this;
+
+        this.uploadedChunks.clear();
+
+        events.add(FileChunksClearedEvent.create(this));
 
         return this;
 
     }
 
-    public File completeUploadSessionProcessing(final UploadSessionID sessionId) {
+    public File markAsAvailable() {
 
-        final UploadSession session = fetchUploadSessionById(sessionId);
-        session.completeProcessing();
-        // Se colocar evento podemos até fazer um webhook ou notificação aqui
-        // events.add(FileUploadSessionProcessingCompletedEvent.create(this, session));
+        if (this.status == FileStatus.AVAILABLE)
+            return this;
 
+        this.status = FileStatus.AVAILABLE;
+        events.add(FileBecameAvailableEvent.create(this));
         return this;
-
     }
 
-    public UploadSession fetchUploadSessionById(final UploadSessionID sessionId) {
-        return uploadSessions
-                .stream()
-                .filter(session -> session.getId().equals(sessionId))
-                .findFirst()
-                .orElseThrow(() -> NotFoundException.create(UploadSession.class, sessionId));
+    private void selfValidate() {
+        final Notification notification = Notification.create();
+        validate(notification);
+        if (notification.hasErrors())
+            throw InvalidStateException.with(File.class, notification.getDomainErrors());
+    }
+
+    public StorageKey getStorageKey() {
+        return storageKey;
     }
 
     public Checksum getChecksum() {
@@ -214,19 +229,24 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return size;
     }
 
-    public Set<UploadSession> getUploadSessions() {
-        return Set.copyOf(uploadSessions);
+    public FileStatus getStatus() {
+        return status;
+    }
+
+    public Optional<Session> getUploadSession() {
+        return uploadSession;
+    }
+
+    public Set<Chunk> getUploadedChunks() {
+        return Set.copyOf(uploadedChunks);
+    }
+
+    public Optional<Session> getDownloadSession() {
+        return downloadSession;
     }
 
     public Queue<Event<?>> getEvents() {
-        return new LinkedList<>(events);
-    }
-
-    private void selfValidate() {
-        final Notification notification = Notification.create();
-        validate(notification);
-        if (notification.hasErrors())
-            throw InvalidStateException.with(File.class, notification.getDomainErrors());
+        return events;
     }
 
 }

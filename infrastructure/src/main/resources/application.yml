@@ -17,12 +17,9 @@ application:
     messaging: ${STORAGE_VENDOR_MESSAGING:rabbitmq}
   messaging:
     consumer:
-      file-upload-session-canceled-event:
-        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CANCELED_CONCURRENCY:1}
-        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CANCELED_MAX_ATTEMPTS:1}
-      file-upload-session-marked-for-deletion-event:
-        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_MARKED_FOR_DELETION_CONCURRENCY:1}
-        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_MARKED_FOR_DELETION_MAX_ATTEMPTS:1}
-      file-upload-session-processing-initiated-event:
-        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_PROCESSING_INITIATED_CONCURRENCY:1}
-        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_PROCESSING_INITIATED_MAX_ATTEMPTS:1}
+      file-upload-session-completed-event:
+        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_CONCURRENCY:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_MAX_ATTEMPTS:1}
+      file-upload-session-aborted-event:
+        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_CONCURRENCY:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_MAX_ATTEMPTS:1}

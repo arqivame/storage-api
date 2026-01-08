@@ -1,119 +1,65 @@
 package com.arqivame.storage.infrastructure.file.persistence;
 
-import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-
 import com.arqivame.storage.domain.file.Chunk;
-import com.arqivame.storage.domain.file.ChunkID;
-import com.arqivame.storage.domain.file.ChunkStatus;
-import com.arqivame.storage.domain.file.File;
-import com.arqivame.storage.domain.file.UploadSession;
-import com.arqivame.storage.domain.file.service.StorageKey;
-import com.arqivame.storage.domain.file.service.StorageWriter;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 
 @Entity(name = "Chunk")
 @Table(name = "chunks")
 public class ChunkJpaEntity {
 
-    @Id
-    private UUID id;
+    @EmbeddedId
+    private ChunkJpaID id;
 
-    @Column(name = "chunk_index", nullable = false)
+    @Column(name = "index", nullable = false, updatable = false, insertable = false)
     private Long index;
 
-    @Column(name = "chunk_size", nullable = false)
+    @Column(name = "size", nullable = false)
     private Long size;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ChunkStatus status;
-
-    @Column(name = "storage_key")
-    private String storageKey;
-
-    @Column(name = "waiting_for_deletion", nullable = false)
-    private Boolean waitingForDeletion;
-
-    @Column(name = "written_at")
-    private Instant writtenAt;
-
-    @Transient
-    private Optional<StorageWriter> writer;
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", updatable = false)
-    private UploadSessionJpaEntity session;
+    @JoinColumn(name = "file_id", updatable = false, insertable = false)
+    private FileJpaEntity file;
 
     public ChunkJpaEntity() {
     }
 
-    private ChunkJpaEntity(
-            final UUID id,
+    public ChunkJpaEntity(
+            final ChunkJpaID id,
             final Long index,
             final Long size,
-            final ChunkStatus status,
-            final String storageKey,
-            final Boolean waitingForDeletion,
-            final Instant writtenAt,
-            final Optional<StorageWriter> writer,
-            final UploadSessionJpaEntity session) {
+            final FileJpaEntity file) {
         this.id = id;
         this.index = index;
         this.size = size;
-        this.status = status;
-        this.storageKey = storageKey;
-        this.waitingForDeletion = waitingForDeletion;
-        this.writtenAt = writtenAt;
-        this.writer = writer;
-        this.session = session;
+        this.file = file;
     }
 
     public static ChunkJpaEntity fromDomain(
             final Chunk chunk,
-            final UploadSession session,
-            final File file) {
+            final FileJpaEntity fileJpaEntity) {
         return new ChunkJpaEntity(
-                chunk.getId().getValue(),
-                chunk.getIndex(),
-                chunk.getSize(),
-                chunk.getStatus(),
-                chunk.getStorageKey().map(StorageKey::getFullKey).orElse(null),
-                chunk.getWaitingForDeletion(),
-                chunk.getWrittenAt(),
-                chunk.getWriter(),
-                UploadSessionJpaEntity.fromDomain(file, session));
+                new ChunkJpaID(fileJpaEntity.getId(), chunk.index()),
+                chunk.index(),
+                chunk.size(),
+                fileJpaEntity);
     }
 
     public Chunk toDomain() {
-        return Chunk.with(
-                ChunkID.of(id),
-                index,
-                size,
-                status,
-                Objects.isNull(storageKey) ? null : StorageKey.of(storageKey),
-                waitingForDeletion,
-                writtenAt,
-                Objects.isNull(writer) ? null : writer.orElse(null));
+        return new Chunk(index, size);
     }
 
-    public UUID getId() {
+    public ChunkJpaID getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(ChunkJpaID id) {
         this.id = id;
     }
 
@@ -133,52 +79,12 @@ public class ChunkJpaEntity {
         this.size = size;
     }
 
-    public ChunkStatus getStatus() {
-        return status;
+    public FileJpaEntity getFile() {
+        return file;
     }
 
-    public void setStatus(ChunkStatus status) {
-        this.status = status;
-    }
-
-    public String getStorageKey() {
-        return storageKey;
-    }
-
-    public void setStorageKey(String storageKey) {
-        this.storageKey = storageKey;
-    }
-
-    public Boolean getWaitingForDeletion() {
-        return waitingForDeletion;
-    }
-
-    public void setWaitingForDeletion(Boolean waitingForDeletion) {
-        this.waitingForDeletion = waitingForDeletion;
-    }
-
-    public Instant getWrittenAt() {
-        return writtenAt;
-    }
-
-    public void setWrittenAt(Instant writtenAt) {
-        this.writtenAt = writtenAt;
-    }
-
-    public Optional<StorageWriter> getWriter() {
-        return writer;
-    }
-
-    public void setWriter(Optional<StorageWriter> writer) {
-        this.writer = writer;
-    }
-
-    public UploadSessionJpaEntity getSession() {
-        return session;
-    }
-
-    public void setSession(UploadSessionJpaEntity session) {
-        this.session = session;
+    public void setFile(FileJpaEntity file) {
+        this.file = file;
     }
 
     @Override
@@ -211,11 +117,7 @@ public class ChunkJpaEntity {
         return "ChunkJpaEntity [id=" + id
                 + ", index=" + index
                 + ", size=" + size
-                + ", status=" + status
-                + ", storageKey=" + storageKey
-                + ", waitingForDeletion=" + waitingForDeletion
-                + ", writtenAt=" + writtenAt
-                + ", session=" + session
+                + ", file=" + file
                 + "]";
     }
 

@@ -1,11 +1,11 @@
 package com.arqivame.storage.domain.file.service;
 
+import java.util.Arrays;
 import java.util.Objects;
 
+import com.arqivame.storage.domain.Identifier;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
-import com.arqivame.storage.domain.file.FileID;
-import com.arqivame.storage.domain.file.UploadSessionID;
 
 public final class StorageKey {
 
@@ -21,31 +21,34 @@ public final class StorageKey {
         this.segments = segments;
     }
 
-    public static StorageKey from(
-            final FileID file,
-            final UploadSessionID session,
-            final Long chunkIndex) {
+    public static StorageKey create(final String segmentPrefix, final Identifier<?> identifier) {
 
-        return new StorageKey(
-                new String[] {
-                        "files",
-                        file.getStringValue(),
-                        "uploads",
-                        session.getStringValue(),
-                        "chunks",
-                        "index",
-                        chunkIndex.toString()
-                });
+        final String[] segments = new String[] {
+                segmentPrefix,
+                identifier.getStringValue()
+        };
+
+        return new StorageKey(segments);
     }
 
-    public static StorageKey from(final FileID file) {
+    public StorageKey subKey(final String segmentPrefix, final Identifier<?> identifier) {
+        return subKey(segmentPrefix, identifier.getStringValue());
+    }
 
-        return new StorageKey(
-                new String[] {
-                        "files",
-                        file.getStringValue(),
-                        "data"
-                });
+    public StorageKey subKey(final String... subSegments) {
+
+        final String[] combined = Arrays.copyOf(
+                segments,
+                segments.length + subSegments.length);
+
+        System.arraycopy(
+                subSegments,
+                0,
+                combined,
+                segments.length,
+                subSegments.length);
+
+        return new StorageKey(combined);
     }
 
     public static StorageKey of(final String fullKey) {
