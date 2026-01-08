@@ -5,9 +5,9 @@ import java.nio.file.Path;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.arqivame.storage.domain.file.service.ChunkMergeService;
+import com.arqivame.storage.domain.file.service.FileAssemblerService;
 import com.arqivame.storage.domain.file.service.StorageService;
-import com.arqivame.storage.infrastructure.file.service.FileSystemChunkMergeService;
+import com.arqivame.storage.infrastructure.file.service.FileSystemFileAssemblerService;
 import com.arqivame.storage.infrastructure.file.service.FileSystemStorageService;
 
 @Configuration
@@ -21,8 +21,8 @@ public class FileDomainServiceConfig {
     }
 
     @Bean
-    ChunkMergeService chunkMergeService() {
-        return new FileSystemChunkMergeService(Path.of(rootLocation));
+    FileAssemblerService chunkMergeService() {
+        return new FileSystemFileAssemblerService(Path.of(rootLocation));
     }
 
 }

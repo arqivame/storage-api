@@ -1,5 +1,6 @@
 package com.arqivame.storage.infrastructure.file;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -12,28 +13,21 @@ import com.arqivame.storage.domain.file.Chunk;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
-import com.arqivame.storage.domain.file.UploadSession;
-import com.arqivame.storage.domain.file.UploadSessionID;
 import com.arqivame.storage.infrastructure.file.persistence.ChunkJpaEntity;
 import com.arqivame.storage.infrastructure.file.persistence.ChunkJpaRepository;
 import com.arqivame.storage.infrastructure.file.persistence.FileJpaEntity;
 import com.arqivame.storage.infrastructure.file.persistence.FileJpaRepository;
-import com.arqivame.storage.infrastructure.file.persistence.UploadSessionJpaEntity;
-import com.arqivame.storage.infrastructure.file.persistence.UploadSessionJpaRepository;
 
 @Component
 public class DefaultFileGateway implements FileGateway {
 
     private final FileJpaRepository fileJpaRepository;
-    private final UploadSessionJpaRepository uploadSessionJpaRepository;
     private final ChunkJpaRepository chunkJpaRepository;
 
     public DefaultFileGateway(
             final FileJpaRepository fileJpaRepository,
-            final UploadSessionJpaRepository uploadSessionJpaRepository,
             final ChunkJpaRepository chunkJpaRepository) {
         this.fileJpaRepository = Objects.requireNonNull(fileJpaRepository);
-        this.uploadSessionJpaRepository = Objects.requireNonNull(uploadSessionJpaRepository);
         this.chunkJpaRepository = Objects.requireNonNull(chunkJpaRepository);
     }
 
@@ -41,7 +35,7 @@ public class DefaultFileGateway implements FileGateway {
     public Optional<File> findById(final FileID id) {
         return fileJpaRepository
                 .findById(Objects.requireNonNull(id.getValue()))
-                .map(fileJpa -> fileJpa.toDomain(findUploadSession(id)));
+                .map(fileJpa -> fileJpa.toDomain(findUploadedChunks(id)));
     }
 
     @Transactional
@@ -66,53 +60,32 @@ public class DefaultFileGateway implements FileGateway {
 
     private File save(final File file) {
 
-        fileJpaRepository
+        final FileJpaEntity fileJpaEntity = fileJpaRepository
                 .saveAndFlush(Objects.requireNonNull(FileJpaEntity.fromDomain(file)));
 
-        file
-                .getUploadSessions()
-                .forEach(session -> saveChunks(file, saveUploadSession(file, session)));
+        saveChunks(file.getUploadedChunks(), fileJpaEntity);
 
         return file;
     }
 
-    private Set<UploadSession> findUploadSession(final FileID fileId) {
-        return uploadSessionJpaRepository
+    private Set<Chunk> findUploadedChunks(final FileID fileId) {
+        return chunkJpaRepository
                 .findAllByFileId(fileId.getValue())
-                .stream()
-                .map(session -> session.toDomain(findAllSessionChunks(UploadSessionID.of(session.getId()))))
-                .collect(Collectors.toSet());
-    }
-
-    private Set<Chunk> findAllSessionChunks(final UploadSessionID uploadSessionId) {
-        return chunkJpaRepository.findAllBySessionId(uploadSessionId.getValue())
                 .stream()
                 .map(ChunkJpaEntity::toDomain)
                 .collect(Collectors.toSet());
     }
 
-    private UploadSession saveUploadSession(final File file, final UploadSession uploadSession) {
+    private Set<Chunk> saveChunks(final Set<Chunk> chunks, final FileJpaEntity fileJpaEntity) {
 
-        return uploadSessionJpaRepository
-                .saveAndFlush(Objects.requireNonNull(UploadSessionJpaEntity.fromDomain(file, uploadSession)))
-                .toDomain(uploadSession.getChunks());
-
-    }
-
-    private Set<Chunk> saveChunks(final File file, final UploadSession uploadSession) {
-
-        if (uploadSession.getChunks().isEmpty())
-            return Set.of();
-
-        final Set<ChunkJpaEntity> chunksJpa = uploadSession
-                .getChunks()
+        final List<ChunkJpaEntity> chunksJpa = chunks
                 .stream()
-                .map(chunk -> ChunkJpaEntity.fromDomain(chunk, uploadSession, file))
-                .collect(Collectors.toSet());
+                .map(chunk -> ChunkJpaEntity.fromDomain(chunk, fileJpaEntity))
+                .toList();
 
         chunkJpaRepository.saveAllAndFlush(Objects.requireNonNull(chunksJpa));
 
-        return uploadSession.getChunks();
+        return chunks;
 
     }
 
