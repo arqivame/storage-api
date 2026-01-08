@@ -55,7 +55,7 @@ public class FinalizeFileProcessingService {
                         chunk))
                 .collect(Collectors.toSet());
 
-        final StorageKey fileStorageKey = file.getStorageKey();
+        final StorageKey fileStorageKey = file.getStorageKey().subKey("data");
         final MergeResult mergeResult = fileAssemblerService.mergeChunks(fileStorageKey, chunks, firstChunkSize);
         if (!mergeResult.allChunksMerged())
             throw MergeChunksException.create();
