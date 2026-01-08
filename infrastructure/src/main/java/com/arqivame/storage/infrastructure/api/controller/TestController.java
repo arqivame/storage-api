@@ -14,9 +14,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkInput;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionInput;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionUseCase;
+import com.arqivame.storage.application.usecase.file.session.upload.complete.CompleteUploadSessionInput;
+import com.arqivame.storage.application.usecase.file.session.upload.complete.CompleteUploadSessionUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.create.CreateUploadSessionInput;
 import com.arqivame.storage.application.usecase.file.session.upload.create.CreateUploadSessionUseCase;
 import com.arqivame.storage.domain.file.Checksum;
@@ -27,36 +30,37 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("test/files")
 public class TestController {
 
+    private final CompleteUploadSessionUseCase completeUploadSessionUseCase;
     private final CreateUploadSessionUseCase createUploadSessionUseCase;
-    private final UploadChunkUseCase writeUploadSessionChunkUseCase;
-    private final AbortUploadSessionUseCase cancelUploadSessionUseCase;
+    private final UploadChunkUseCase uploadChunkUseCase;
+    private final AbortUploadSessionUseCase abortUploadSessionUseCase;
 
     public TestController(
+            CompleteUploadSessionUseCase completeUploadSessionUseCase,
             CreateUploadSessionUseCase createUploadSessionUseCase,
-            UploadChunkUseCase writeUploadSessionChunkUseCase,
-            AbortUploadSessionUseCase cancelUploadSessionUseCase) {
+            UploadChunkUseCase uploadChunkUseCase,
+            AbortUploadSessionUseCase abortUploadSessionUseCase) {
+        this.completeUploadSessionUseCase = completeUploadSessionUseCase;
         this.createUploadSessionUseCase = createUploadSessionUseCase;
-        this.writeUploadSessionChunkUseCase = writeUploadSessionChunkUseCase;
-        this.cancelUploadSessionUseCase = cancelUploadSessionUseCase;
+        this.uploadChunkUseCase = uploadChunkUseCase;
+        this.abortUploadSessionUseCase = abortUploadSessionUseCase;
     }
 
-    @PutMapping(value = "{fileId}/sessions/{sessionId}/chunks/{chunkPart}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PutMapping(value = "{fileId}/sessions/chunks/{chunkIndex}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> uploadPart(
             @PathVariable UUID fileId,
-            @PathVariable UUID sessionId,
-            @PathVariable Long chunkPart,
+            @PathVariable Long chunkIndex,
             @RequestHeader("X-Checksum-Value") String checksumValue,
             @RequestHeader("X-Checksum-Algorithm") Checksum.Algorithm checksumAlgorithm,
             HttpServletRequest request) throws IOException {
 
-        // writeUploadSessionChunkUseCase
-        //         .execute(new UploadChunkInput(
-        //                 fileId,
-        //                 sessionId,
-        //                 checksumValue,
-        //                 checksumAlgorithm,
-        //                 request.getInputStream(),
-        //                 chunkPart));
+        uploadChunkUseCase.execute(
+                new UploadChunkInput(
+                        fileId,
+                        checksumValue,
+                        checksumAlgorithm,
+                        request.getInputStream(),
+                        chunkIndex));
 
         return ResponseEntity.ok().build();
 
@@ -68,20 +72,18 @@ public class TestController {
     }
 
     @Transactional
-    @PostMapping("sessions/cancel")
-    public ResponseEntity<Void> cancel(@RequestBody AbortUploadSessionInput input) {
+    @PostMapping("sessions/abort")
+    public ResponseEntity<Void> abort(@RequestBody AbortUploadSessionInput input) {
 
-        cancelUploadSessionUseCase.execute(input);
+        abortUploadSessionUseCase.execute(input);
 
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(value = "{fileId}/sessions/{sessionId}/complete")
-    public ResponseEntity<?> completeSession(
-            @PathVariable UUID fileId,
-            @PathVariable UUID sessionId) throws IOException {
+    @PostMapping(value = "{fileId}/session/complete")
+    public ResponseEntity<?> completeSession(@PathVariable UUID fileId) throws IOException {
 
-        // initiateUploadSessionProcessingUseCase.execute(new InitiateUploadSessionProcessingInput(fileId, sessionId));
+        completeUploadSessionUseCase.execute(new CompleteUploadSessionInput(fileId));
 
         return ResponseEntity.ok().build();
 
