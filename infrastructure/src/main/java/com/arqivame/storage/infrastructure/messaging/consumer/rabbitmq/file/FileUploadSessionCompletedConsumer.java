@@ -10,8 +10,7 @@ import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCompleted
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.RabbitMQMessageConsumer;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 
-public class FileUploadSessionCompletedConsumer
-        extends RabbitMQMessageConsumer<FileUploadSessionCompletedMessage> {
+public class FileUploadSessionCompletedConsumer extends RabbitMQMessageConsumer<FileUploadSessionCompletedMessage> {
 
     private final FinalizeFileProcessingService finalizeFileProcessingService;
 

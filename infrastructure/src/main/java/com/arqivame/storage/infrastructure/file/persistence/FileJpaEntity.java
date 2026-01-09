@@ -3,13 +3,11 @@ package com.arqivame.storage.infrastructure.file.persistence;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Set;
 import java.util.UUID;
 
 import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.Checksum.Algorithm;
-import com.arqivame.storage.domain.file.Chunk;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.FileStatus;
@@ -153,7 +151,7 @@ public class FileJpaEntity {
                 file.getEvents());
     }
 
-    public File toDomain(final Set<Chunk> uploadedChunks) {
+    public File toDomain() {
         return File.with(
                 FileID.of(id),
                 StorageKey.of(fullStorageKey),
@@ -161,7 +159,6 @@ public class FileJpaEntity {
                 size,
                 status,
                 uploadSession(),
-                uploadedChunks,
                 downloadSession(),
                 events);
     }

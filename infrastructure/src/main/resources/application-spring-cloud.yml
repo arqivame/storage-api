@@ -1,11 +1,12 @@
 spring:
   cloud:
     function:
-      definition: fileUploadSessionCompletedConsumer;fileUploadSessionAbortedConsumer
+      definition: fileUploadSessionCompletedConsumer;fileUploadSessionClosedConsumer;fileUploadSessionAbortedConsumer
     stream:
       function:
         bindings:
           fileUploadSessionCompletedConsumer-in-0: fileUploadSessionCompletedEvent-in-0
+          fileUploadSessionClosedConsumer-in-0: fileUploadSessionClosedEvent-in-0
           fileUploadSessionAbortedConsumer-in-0: fileUploadSessionAbortedEvent-in-0
       default:
         content-type: application/json
@@ -18,6 +19,13 @@ spring:
           destination: storage.exchange.error
           producer:
             requiredGroups: storage.file:upload-session.completed.queue.error
+        ## File Upload Session Closed Event
+        fileUploadSessionClosedEvent-out-0:
+          destination: storage.exchange
+        fileUploadSessionClosedEventError-out-0:
+          destination: storage.exchange.error
+          producer:
+            requiredGroups: storage.file:upload-session.closed.queue.error
         ## File Upload Session Aborted Event
         fileUploadSessionAbortedEvent-out-0:
           destination: storage.exchange
@@ -34,6 +42,13 @@ spring:
           consumer:
             max-attempts: 1
             concurrency: ${application.messaging.consumer.file-upload-session-completed-event.concurrency}
+        ## File Upload Session Closed Event
+        fileUploadSessionClosedEvent-in-0:
+          destination: storage.exchange
+          group: storage.file:upload-session.closed.queue
+          consumer:
+            max-attempts: 1
+            concurrency: ${application.messaging.consumer.file-upload-session-closed-event.concurrency}
         ## File Upload Session Aborted Event
         fileUploadSessionAbortedEvent-in-0:
           destination: storage.exchange

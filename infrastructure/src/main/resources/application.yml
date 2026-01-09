@@ -20,6 +20,9 @@ application:
       file-upload-session-completed-event:
         concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_CONCURRENCY:1}
         max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_MAX_ATTEMPTS:1}
+      file-upload-session-closed-event:
+        concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CLOSED_CONCURRENCY:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CLOSED_MAX_ATTEMPTS:1}
       file-upload-session-aborted-event:
         concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_CONCURRENCY:1}
         max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_MAX_ATTEMPTS:1}

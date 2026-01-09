@@ -3,8 +3,6 @@ package com.arqivame.storage.domain.file.service;
 import java.util.Objects;
 import java.util.Set;
 
-import com.arqivame.storage.domain.file.Chunk;
-
 @FunctionalInterface
 public interface FileAssemblerService {
 
@@ -12,8 +10,8 @@ public interface FileAssemblerService {
 
     public record ChunkInfo(StorageKey key, Long index) {
 
-        public static ChunkInfo with(final StorageKey chunkStorageKey, final Chunk chunk) {
-            return new ChunkInfo(chunkStorageKey, chunk.index());
+        public static ChunkInfo with(final StorageKey chunkStorageKey, final Long index) {
+            return new ChunkInfo(chunkStorageKey, index);
         }
 
     }
