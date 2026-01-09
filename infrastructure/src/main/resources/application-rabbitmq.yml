@@ -27,6 +27,18 @@ spring:
               destination: storage.exchange.error
               routingKeyExpression: "'storage.file:upload-session.completed'"
               queueNameGroupOnly: true
+          ## File Upload Session Closed Event
+          fileUploadSessionClosedEvent-out-0:
+            producer:
+              exchangeType: topic
+              destination: storage.exchange
+              routingKeyExpression: "'storage.file:upload-session.closed'"
+          fileUploadSessionClosedEventError-out-0:
+            producer:
+              exchangeType: topic
+              destination: storage.exchange.error
+              routingKeyExpression: "'storage.file:upload-session.closed'"
+              queueNameGroupOnly: true
           ## File Upload Session Aborted Event
           fileUploadSessionAbortedEvent-out-0:
             producer:
@@ -52,6 +64,19 @@ spring:
               deadLetterQueueName: storage.file:upload-session.completed.queue.wait
               dlqDeadLetterExchange: storage.exchange
               dlqDeadLetterRoutingKey: storage.file:upload-session.completed
+              republishToDlq: false
+              dlqTtl: 5000
+          ## File Upload Session Closed Event
+          fileUploadSessionClosedEvent-in-0:
+            consumer:
+              exchangeType: topic
+              bindingRoutingKey: storage.file:upload-session.closed
+              queueNameGroupOnly: true
+              autoBindDlq: true
+              deadLetterExchange: storage.exchange.wait
+              deadLetterQueueName: storage.file:upload-session.closed.queue.wait
+              dlqDeadLetterExchange: storage.exchange
+              dlqDeadLetterRoutingKey: storage.file:upload-session.closed
               republishToDlq: false
               dlqTtl: 5000
           ## File Upload Session Aborted Event

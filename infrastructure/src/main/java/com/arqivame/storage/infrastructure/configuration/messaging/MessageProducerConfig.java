@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionAbortedMessage;
+import com.arqivame.storage.infrastructure.file.model.FileUploadSessionClosedMessage;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCompletedMessage;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
 import com.arqivame.storage.infrastructure.messaging.producer.springcloud.SpringCloudMessageProducer;
@@ -30,6 +31,17 @@ public class MessageProducerConfig {
     @Bean
     MessageProducer<FileUploadSessionCompletedMessage> fileUploadSessionCompletedEventError() {
         return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionCompletedEventError-out-0");
+    }
+
+    @Bean
+    @Primary
+    MessageProducer<FileUploadSessionClosedMessage> fileUploadSessionClosedEvent() {
+        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionClosedEvent-out-0");
+    }
+
+    @Bean
+    MessageProducer<FileUploadSessionClosedMessage> fileUploadSessionClosedEventError() {
+        return new SpringCloudMessageProducer<>(streamBridge, "fileUploadSessionClosedEventError-out-0");
     }
 
     @Bean

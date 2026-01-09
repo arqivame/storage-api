@@ -8,7 +8,6 @@ import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
 import com.arqivame.storage.domain.file.Checksum;
-import com.arqivame.storage.domain.file.Chunk;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
@@ -53,6 +52,7 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
         concurrencyTracker.increment(fileId, CONCURRENCY_TAG_UPLOAD);
 
         try {
+
             final StorageKey chunkStorageKey = file.getStorageKey().subKey("upload", "chunks", chunkIndex.toString());
 
             final Checksum writeResult = storageWriter.write(
@@ -64,8 +64,6 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
             if (!writeResult.equals(checksumValue))
                 throw InvalidArgumentException.with(Error.with("Checksum mismatch for chunk index: " + chunkIndex));
-
-            fileGateway.update(file.appendUploadChunk(Chunk.create(chunkIndex, chunkSize)));
 
         } finally {
             concurrencyTracker.decrement(fileId, CONCURRENCY_TAG_UPLOAD);

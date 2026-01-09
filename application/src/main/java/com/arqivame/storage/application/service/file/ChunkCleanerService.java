@@ -28,9 +28,7 @@ public class ChunkCleanerService {
                 .findById(FileID.of(fileId))
                 .orElseThrow(() -> NotFoundException.create(File.class, FileID.of(fileId)));
 
-        file.getUploadedChunks()
-                .forEach(chunk -> storageDeleter.delete(
-                        file.getStorageKey().subKey("upload", "chunks", chunk.index().toString())));
+        storageDeleter.delete(file.getStorageKey().subKey("upload", "chunks"));
 
     }
 

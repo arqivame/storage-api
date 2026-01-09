@@ -2,12 +2,15 @@ package com.arqivame.storage.infrastructure.commons;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.channels.FileChannel;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 import com.arqivame.storage.domain.exception.InternalErrorException;
 
@@ -44,7 +47,21 @@ public final class FileSystemUtils {
 
     public static void delete(final Path filePath) {
         try {
-            Files.deleteIfExists(filePath);
+
+            if (Files.notExists(filePath))
+                return;
+
+            try (Stream<Path> walk = Files.walk(filePath)) {
+                walk.sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                        });
+            }
+
         } catch (IOException e) {
             throw InternalErrorException.with("Failed to delete file: " + filePath.toString(), e);
         }
