@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.arqivame.storage.application.port.ConcurrencyTracker;
+import com.arqivame.storage.application.service.storage.StorageService;
 import com.arqivame.storage.application.usecase.file.chunk.upload.DefaultUploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionUseCase;
@@ -16,7 +17,6 @@ import com.arqivame.storage.application.usecase.file.session.upload.create.Creat
 import com.arqivame.storage.application.usecase.file.session.upload.create.DefaultCreateUploadSessionUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
-import com.arqivame.storage.domain.file.service.StorageService;
 
 @Configuration
 public class FileUseCaseConfig {

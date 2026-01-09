@@ -2,12 +2,12 @@ package com.arqivame.storage.application.usecase.file.session.upload.create;
 
 import java.util.Objects;
 
+import com.arqivame.storage.application.service.file.ChunkCalculatorService;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
-import com.arqivame.storage.domain.file.service.ChunkCalculatorService;
 
 public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCase {
 

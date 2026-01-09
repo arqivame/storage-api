@@ -12,7 +12,6 @@ import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.FileStatus;
 import com.arqivame.storage.domain.file.Session;
-import com.arqivame.storage.domain.file.service.StorageKey;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,9 +27,6 @@ public class FileJpaEntity {
 
     @Id
     private UUID id;
-
-    @Column(name = "full_storage_key", updatable = false, nullable = false)
-    private String fullStorageKey;
 
     @Column(name = "checksum_value", nullable = false) // updatable = false, nullable = false
     private String checksumValue;
@@ -87,7 +83,6 @@ public class FileJpaEntity {
 
     public FileJpaEntity(
             UUID id,
-            String fullStorageKey,
             String checksumValue,
             Algorithm checksumAlgorithm,
             Long size,
@@ -106,7 +101,6 @@ public class FileJpaEntity {
             Long downloadSessionLastChunkSize,
             Queue<Event<?>> events) {
         this.id = id;
-        this.fullStorageKey = fullStorageKey;
         this.checksumValue = checksumValue;
         this.checksumAlgorithm = checksumAlgorithm;
         this.size = size;
@@ -131,7 +125,6 @@ public class FileJpaEntity {
 
     public static FileJpaEntity fromDomain(final File file) {
         return new FileJpaEntity(file.getId().getValue(),
-                file.getStorageKey().getFullKey(),
                 file.getChecksum().value(),
                 file.getChecksum().algorithm(),
                 file.getSize(),
@@ -154,7 +147,6 @@ public class FileJpaEntity {
     public File toDomain() {
         return File.with(
                 FileID.of(id),
-                StorageKey.of(fullStorageKey),
                 Checksum.from(checksumValue, checksumAlgorithm),
                 size,
                 status,
@@ -195,14 +187,6 @@ public class FileJpaEntity {
 
     public void setId(UUID id) {
         this.id = id;
-    }
-
-    public String getFullStorageKey() {
-        return fullStorageKey;
-    }
-
-    public void setFullStorageKey(String fullStorageKey) {
-        this.fullStorageKey = fullStorageKey;
     }
 
     public String getChecksumValue() {
@@ -371,7 +355,6 @@ public class FileJpaEntity {
     @Override
     public String toString() {
         return "FileJpaEntity [id=" + id
-                + ", fullStorageKey=" + fullStorageKey
                 + ", checksumValue=" + checksumValue
                 + ", checksumAlgorithm=" + checksumAlgorithm
                 + ", size=" + size

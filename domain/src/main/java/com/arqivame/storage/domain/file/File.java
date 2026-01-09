@@ -16,16 +16,12 @@ import com.arqivame.storage.domain.file.event.FileUploadSessionAbortedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionClosedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCompletedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionOpenedEvent;
-import com.arqivame.storage.domain.file.service.StorageKey;
 import com.arqivame.storage.domain.validation.ValidationError;
 import com.arqivame.storage.domain.validation.ValidationHandler;
 import com.arqivame.storage.domain.validation.handler.Notification;
 
 public class File extends AggregateRoot<FileID> implements EventSource {
 
-    private static final String STORAGE_KEY_PREFIX = "files";
-
-    private final StorageKey storageKey;
     private final Checksum checksum;
     private final Long size;
 
@@ -38,7 +34,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     private File(
             final FileID id,
-            final StorageKey storageKey,
             final Checksum checksum,
             final Long size,
             final FileStatus status,
@@ -46,7 +41,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final Optional<Session> downloadSession,
             final Queue<Event<?>> events) {
         super(id);
-        this.storageKey = storageKey;
         this.checksum = checksum;
         this.size = size;
         this.status = status;
@@ -61,7 +55,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public static File with(
             final FileID id,
-            final StorageKey storageKey,
             final Checksum checksum,
             final Long size,
             final FileStatus status,
@@ -70,7 +63,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final Queue<Event<?>> events) {
         return new File(
                 id,
-                storageKey,
                 checksum,
                 size,
                 status,
@@ -86,7 +78,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
         final File file = new File(
                 id,
-                StorageKey.create(STORAGE_KEY_PREFIX, id),
                 checksum,
                 size,
                 FileStatus.UPLOADING,
@@ -190,10 +181,6 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         validate(notification);
         if (notification.hasErrors())
             throw InvalidStateException.with(File.class, notification.getDomainErrors());
-    }
-
-    public StorageKey getStorageKey() {
-        return storageKey;
     }
 
     public Checksum getChecksum() {

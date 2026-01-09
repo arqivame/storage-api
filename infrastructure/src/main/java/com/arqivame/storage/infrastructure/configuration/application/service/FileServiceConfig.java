@@ -5,10 +5,10 @@ import org.springframework.context.annotation.Configuration;
 
 import com.arqivame.storage.application.service.file.ChunkCleanerService;
 import com.arqivame.storage.application.service.file.FinalizeFileProcessingService;
+import com.arqivame.storage.application.service.storage.FileAssemblerService;
+import com.arqivame.storage.application.service.storage.StorageDeleter;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
-import com.arqivame.storage.domain.file.service.FileAssemblerService;
-import com.arqivame.storage.domain.file.service.StorageDeleter;
 
 @Configuration
 public class FileServiceConfig {

@@ -3,11 +3,12 @@ package com.arqivame.storage.application.service.file;
 import java.util.Objects;
 import java.util.UUID;
 
+import com.arqivame.storage.application.service.storage.StorageDeleter;
+import com.arqivame.storage.application.service.storage.StorageKey;
 import com.arqivame.storage.domain.exception.NotFoundException;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
-import com.arqivame.storage.domain.file.service.StorageDeleter;
 
 public class ChunkCleanerService {
 
@@ -28,7 +29,7 @@ public class ChunkCleanerService {
                 .findById(FileID.of(fileId))
                 .orElseThrow(() -> NotFoundException.create(File.class, FileID.of(fileId)));
 
-        storageDeleter.delete(file.getStorageKey().subKey("upload", "chunks"));
+        storageDeleter.delete(StorageKey.create("files", file.getId()).subKey("upload", "chunks"));
 
     }
 

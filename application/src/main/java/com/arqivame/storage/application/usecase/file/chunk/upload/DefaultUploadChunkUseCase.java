@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.util.Objects;
 
 import com.arqivame.storage.application.port.ConcurrencyTracker;
+import com.arqivame.storage.application.service.storage.StorageKey;
+import com.arqivame.storage.application.service.storage.StorageWriter;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
@@ -12,8 +14,6 @@ import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.Session;
-import com.arqivame.storage.domain.file.service.StorageKey;
-import com.arqivame.storage.domain.file.service.StorageWriter;
 
 public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
@@ -53,7 +53,8 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
         try {
 
-            final StorageKey chunkStorageKey = file.getStorageKey().subKey("upload", "chunks", chunkIndex.toString());
+            final StorageKey chunkStorageKey = StorageKey.create("files", file.getId()).subKey("upload", "chunks",
+                    chunkIndex.toString());
 
             final Checksum writeResult = storageWriter.write(
                     chunkStorageKey,

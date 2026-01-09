@@ -6,16 +6,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.LongStream;
 
+import com.arqivame.storage.application.service.storage.FileAssemblerService;
+import com.arqivame.storage.application.service.storage.StorageKey;
+import com.arqivame.storage.application.service.storage.FileAssemblerService.ChunkInfo;
+import com.arqivame.storage.application.service.storage.FileAssemblerService.MergeResult;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.exception.MergeChunksException;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.Session;
-import com.arqivame.storage.domain.file.service.FileAssemblerService;
-import com.arqivame.storage.domain.file.service.FileAssemblerService.ChunkInfo;
-import com.arqivame.storage.domain.file.service.FileAssemblerService.MergeResult;
-import com.arqivame.storage.domain.file.service.StorageKey;
 
 public class FinalizeFileProcessingService {
 
@@ -48,11 +48,12 @@ public class FinalizeFileProcessingService {
 
         LongStream.range(0, uploadSession.totalChunks())
                 .forEach(index -> chunks.add(
-                        ChunkInfo.with(file.getStorageKey().subKey("upload", "chunks", String.valueOf(index)), index)));
+                        ChunkInfo.with(StorageKey.create("files", file.getId())
+                                .subKey("upload", "chunks", String.valueOf(index)), index)));
 
         final Long firstChunkSize = uploadSession.chunkSize();
 
-        final StorageKey fileStorageKey = file.getStorageKey().subKey("data");
+        final StorageKey fileStorageKey = StorageKey.create("files", file.getId()).subKey("data");
         final MergeResult mergeResult = fileAssemblerService.mergeChunks(fileStorageKey, chunks, firstChunkSize);
         if (!mergeResult.allChunksMerged())
             throw MergeChunksException.create();

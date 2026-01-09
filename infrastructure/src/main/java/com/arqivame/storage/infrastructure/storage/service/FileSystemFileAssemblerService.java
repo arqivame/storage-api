@@ -1,4 +1,4 @@
-package com.arqivame.storage.infrastructure.file.service;
+package com.arqivame.storage.infrastructure.storage.service;
 
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
@@ -8,8 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.arqivame.storage.domain.file.service.FileAssemblerService;
-import com.arqivame.storage.domain.file.service.StorageKey;
+import com.arqivame.storage.application.service.storage.FileAssemblerService;
+import com.arqivame.storage.application.service.storage.StorageKey;
 import com.arqivame.storage.infrastructure.commons.FileSystemUtils;
 import com.arqivame.storage.infrastructure.commons.SequentialIterator;
 

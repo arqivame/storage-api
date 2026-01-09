@@ -1,4 +1,4 @@
-package com.arqivame.storage.infrastructure.file.service;
+package com.arqivame.storage.infrastructure.storage.service;
 
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.bounded;
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.digestible;
@@ -10,10 +10,10 @@ import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.util.Objects;
 
+import com.arqivame.storage.application.service.storage.StorageKey;
+import com.arqivame.storage.application.service.storage.StorageService;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.Checksum.Algorithm;
-import com.arqivame.storage.domain.file.service.StorageKey;
-import com.arqivame.storage.domain.file.service.StorageService;
 import com.arqivame.storage.infrastructure.commons.FileSystemUtils;
 import com.arqivame.storage.infrastructure.commons.MessageDigestUtils;
 import com.arqivame.storage.infrastructure.commons.StringUtils;

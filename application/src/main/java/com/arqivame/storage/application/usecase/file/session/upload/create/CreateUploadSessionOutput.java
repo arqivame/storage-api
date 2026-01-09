@@ -2,8 +2,8 @@ package com.arqivame.storage.application.usecase.file.session.upload.create;
 
 import java.util.UUID;
 
+import com.arqivame.storage.application.service.file.ChunkCalculatorService;
 import com.arqivame.storage.domain.file.FileID;
-import com.arqivame.storage.domain.file.service.ChunkCalculatorService;
 
 public record CreateUploadSessionOutput(
         UUID fileId,

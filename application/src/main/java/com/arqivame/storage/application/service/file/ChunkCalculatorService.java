@@ -1,4 +1,4 @@
-package com.arqivame.storage.domain.file.service;
+package com.arqivame.storage.application.service.file;
 
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.DomainException.Error;

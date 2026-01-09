@@ -5,10 +5,10 @@ import java.nio.file.Path;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.arqivame.storage.domain.file.service.FileAssemblerService;
-import com.arqivame.storage.domain.file.service.StorageService;
-import com.arqivame.storage.infrastructure.file.service.FileSystemFileAssemblerService;
-import com.arqivame.storage.infrastructure.file.service.FileSystemStorageService;
+import com.arqivame.storage.application.service.storage.FileAssemblerService;
+import com.arqivame.storage.application.service.storage.StorageService;
+import com.arqivame.storage.infrastructure.storage.service.FileSystemFileAssemblerService;
+import com.arqivame.storage.infrastructure.storage.service.FileSystemStorageService;
 
 @Configuration
 public class FileDomainServiceConfig {
