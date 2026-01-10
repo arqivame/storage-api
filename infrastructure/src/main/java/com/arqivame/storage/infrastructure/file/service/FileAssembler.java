@@ -1,10 +1,12 @@
-package com.arqivame.storage.application.service.storage;
+package com.arqivame.storage.infrastructure.file.service;
 
 import java.util.Objects;
 import java.util.Set;
 
+import com.arqivame.storage.infrastructure.storage.service.StorageKey;
+
 @FunctionalInterface
-public interface FileAssemblerService {
+public interface FileAssembler {
 
     MergeResult mergeChunks(StorageKey finalFileKey, Set<ChunkInfo> chunks, Long firstChunkSize);
 

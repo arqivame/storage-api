@@ -142,28 +142,13 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         return this;
     }
 
-    public File closeUploadSession() {
-
-        if (uploadSession.isEmpty())
-            return this;
-
-        uploadSession = Optional.empty();
-
-        events.add(FileUploadSessionClosedEvent.create(this));
-
-        return this;
-    }
-
     public File abortUploadSession() {
 
         if (uploadSession.isEmpty())
             return this;
 
-        uploadSession = Optional.empty();
-
         events.add(FileUploadSessionAbortedEvent.create(this));
-
-        return this;
+        return closeUploadSession();
     }
 
     public File markAsAvailable() {
@@ -173,6 +158,18 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
         this.status = FileStatus.AVAILABLE;
         events.add(FileBecameAvailableEvent.create(this));
+        return closeUploadSession();
+    }
+
+    private File closeUploadSession() {
+
+        if (uploadSession.isEmpty())
+            return this;
+
+        uploadSession = Optional.empty();
+
+        events.add(FileUploadSessionClosedEvent.create(this));
+
         return this;
     }
 

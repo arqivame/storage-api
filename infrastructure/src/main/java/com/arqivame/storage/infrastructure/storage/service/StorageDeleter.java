@@ -1,4 +1,4 @@
-package com.arqivame.storage.application.service.storage;
+package com.arqivame.storage.infrastructure.storage.service;
 
 @FunctionalInterface
 public interface StorageDeleter {

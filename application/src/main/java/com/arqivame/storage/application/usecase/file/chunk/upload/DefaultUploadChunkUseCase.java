@@ -3,9 +3,8 @@ package com.arqivame.storage.application.usecase.file.chunk.upload;
 import java.io.InputStream;
 import java.util.Objects;
 
+import com.arqivame.storage.application.port.ChunkWriter;
 import com.arqivame.storage.application.port.ConcurrencyTracker;
-import com.arqivame.storage.application.service.storage.StorageKey;
-import com.arqivame.storage.application.service.storage.StorageWriter;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
@@ -21,16 +20,16 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
     private final FileGateway fileGateway;
 
-    private final StorageWriter storageWriter;
+    private final ChunkWriter chunkWriter;
 
     private final ConcurrencyTracker concurrencyTracker;
 
     public DefaultUploadChunkUseCase(
             final FileGateway fileGateway,
-            final StorageWriter storageWriter,
+            final ChunkWriter chunkWriter,
             final ConcurrencyTracker concurrencyTracker) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
-        this.storageWriter = Objects.requireNonNull(storageWriter);
+        this.chunkWriter = Objects.requireNonNull(chunkWriter);
         this.concurrencyTracker = Objects.requireNonNull(concurrencyTracker);
     }
 
@@ -53,11 +52,9 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
         try {
 
-            final StorageKey chunkStorageKey = StorageKey.create("files", file.getId()).subKey("upload", "chunks",
-                    chunkIndex.toString());
-
-            final Checksum writeResult = storageWriter.write(
-                    chunkStorageKey,
+            final Checksum writeResult = chunkWriter.writeChunk(
+                    fileId,
+                    chunkIndex,
                     chunkData,
                     chunkSize,
                     uploadSession.maxBytesPerSecondTransferRatePerChunk(),

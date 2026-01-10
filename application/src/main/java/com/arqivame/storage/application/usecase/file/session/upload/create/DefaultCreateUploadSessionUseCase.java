@@ -2,7 +2,7 @@ package com.arqivame.storage.application.usecase.file.session.upload.create;
 
 import java.util.Objects;
 
-import com.arqivame.storage.application.service.file.ChunkCalculatorService;
+import com.arqivame.storage.application.service.file.ChunkPartitioningService;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.File;
@@ -35,7 +35,7 @@ public class DefaultCreateUploadSessionUseCase extends CreateUploadSessionUseCas
         final Long maxBytesPerSecondTransferRatePerChunk = input.maxBytesPerSecondTransferRatePerChunk();
         final Checksum checksum = Checksum.from(input.checksumValue(), input.checksumAlgorithm());
 
-        final var chunkCalculationResult = ChunkCalculatorService.calculate(maxAllowedChunkSize, fileSize);
+        final var chunkCalculationResult = ChunkPartitioningService.calculate(maxAllowedChunkSize, fileSize);
 
         final File file = fileGateway
                 .findById(fileId)

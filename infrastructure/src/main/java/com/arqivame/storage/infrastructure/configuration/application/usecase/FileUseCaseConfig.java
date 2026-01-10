@@ -5,8 +5,8 @@ import java.util.Objects;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.arqivame.storage.application.port.ChunkWriter;
 import com.arqivame.storage.application.port.ConcurrencyTracker;
-import com.arqivame.storage.application.service.storage.StorageService;
 import com.arqivame.storage.application.usecase.file.chunk.upload.DefaultUploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionUseCase;
@@ -17,6 +17,7 @@ import com.arqivame.storage.application.usecase.file.session.upload.create.Creat
 import com.arqivame.storage.application.usecase.file.session.upload.create.DefaultCreateUploadSessionUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
+import com.arqivame.storage.infrastructure.storage.service.StorageService;
 
 @Configuration
 public class FileUseCaseConfig {
@@ -26,6 +27,7 @@ public class FileUseCaseConfig {
     private final StorageService storageService;
 
     private final ConcurrencyTracker concurrencyTracker;
+    private final ChunkWriter chunkWriter;
 
     private final EventDispatcher eventDispatcher;
 
@@ -33,10 +35,12 @@ public class FileUseCaseConfig {
             final FileGateway fileGateway,
             final StorageService storageService,
             final ConcurrencyTracker concurrencyTracker,
+            final ChunkWriter chunkWriter,
             final EventDispatcher eventDispatcher) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
         this.storageService = Objects.requireNonNull(storageService);
         this.concurrencyTracker = Objects.requireNonNull(concurrencyTracker);
+        this.chunkWriter = Objects.requireNonNull(chunkWriter);
         this.eventDispatcher = Objects.requireNonNull(eventDispatcher);
     }
 
@@ -60,7 +64,7 @@ public class FileUseCaseConfig {
 
     @Bean
     UploadChunkUseCase uploadChunkUseCase() {
-        return new DefaultUploadChunkUseCase(fileGateway, storageService, concurrencyTracker);
+        return new DefaultUploadChunkUseCase(fileGateway, chunkWriter, concurrencyTracker);
     }
 
 }
