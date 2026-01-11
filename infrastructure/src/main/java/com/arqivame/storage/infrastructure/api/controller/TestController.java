@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkInput;
-import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkUseCase;
+// import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkInput;
+// import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkInput;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionInput;
@@ -53,7 +53,7 @@ public class TestController {
         // this.downloadChunkUseCase = downloadChunkUseCase;
     }
 
-    @GetMapping("{fileId}/upload-session/chunks/{chunkIndex}")
+    @GetMapping("{fileId}/download-session/chunks/{chunkIndex}")
     public ResponseEntity<StreamingResponseBody> streamFile(
             @PathVariable UUID fileId,
             @PathVariable Long chunkIndex) {
@@ -76,7 +76,7 @@ public class TestController {
                 .body(responseBody);
     }
 
-    @PutMapping(value = "{fileId}/download-session/chunks/{chunkIndex}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @PutMapping(value = "{fileId}/upload-session/chunks/{chunkIndex}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<?> uploadPart(
             @PathVariable UUID fileId,
             @PathVariable Long chunkIndex,
@@ -96,13 +96,13 @@ public class TestController {
 
     }
 
-    @PostMapping(path = "download-session")
+    @PostMapping(path = "upload-session")
     public ResponseEntity<Object> createUploadSession(@RequestBody CreateUploadSessionInput input) {
         return ResponseEntity.ok(createUploadSessionUseCase.execute(input));
     }
 
     @Transactional
-    @PostMapping("download-session/abort")
+    @PostMapping("upload-session/abort")
     public ResponseEntity<Void> abort(@RequestBody AbortUploadSessionInput input) {
 
         abortUploadSessionUseCase.execute(input);
@@ -110,7 +110,7 @@ public class TestController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping(value = "{fileId}/download-session/complete")
+    @PostMapping(value = "{fileId}/upload-session/complete")
     public ResponseEntity<?> completeSession(@PathVariable UUID fileId) throws IOException {
 
         completeUploadSessionUseCase.execute(new CompleteUploadSessionInput(fileId));
