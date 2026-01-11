@@ -15,7 +15,7 @@ public class ChunkStorageCleaner {
 
     public void clearChunks(final UUID fileId) {
 
-        storageDeleter.delete(StorageKey.create("files", fileId.toString()).subKey("upload", "chunks"));
+        storageDeleter.delete(StorageKey.create("files", fileId.toString(), "upload"));
 
     }
 

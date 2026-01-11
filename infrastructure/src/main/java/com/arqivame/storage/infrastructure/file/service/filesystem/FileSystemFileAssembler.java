@@ -34,7 +34,7 @@ public class FileSystemFileAssembler implements FileAssembler {
 
         final SequentialIterator<ChunkInfo> iterator = SequentialIterator.of(items);
 
-        try (final FileChannel outputChannel = FileSystemUtils.opeChannel(
+        try (final FileChannel outputChannel = FileSystemUtils.openChannel(
                 toPath(finalFileKey),
                 StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE)) {
@@ -46,7 +46,7 @@ public class FileSystemFileAssembler implements FileAssembler {
                 if (!FileSystemUtils.exists(toPath(chunkInfo.key())))
                     continue;
 
-                try (final FileChannel inputChannel = FileSystemUtils.opeChannel(
+                try (final FileChannel inputChannel = FileSystemUtils.openChannel(
                         toPath(chunkInfo.key()),
                         StandardOpenOption.READ)) {
 

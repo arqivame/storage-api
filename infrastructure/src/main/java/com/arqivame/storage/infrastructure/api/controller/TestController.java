@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkInput;
+import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkInput;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.session.download.create.CreateDownloadSessionInput;
@@ -42,31 +44,31 @@ public class TestController {
     private final AbortUploadSessionUseCase abortUploadSessionUseCase;
 
     private final CreateDownloadSessionUseCase createDownloadSessionUseCase;
-    // private final DownloadChunkUseCase downloadChunkUseCase;
+    private final DownloadChunkUseCase downloadChunkUseCase;
 
     public TestController(
             CompleteUploadSessionUseCase completeUploadSessionUseCase,
             CreateUploadSessionUseCase createUploadSessionUseCase,
             UploadChunkUseCase uploadChunkUseCase,
             AbortUploadSessionUseCase abortUploadSessionUseCase,
-            CreateDownloadSessionUseCase createDownloadSessionUseCase) {
+            CreateDownloadSessionUseCase createDownloadSessionUseCase,
+            DownloadChunkUseCase downloadChunkUseCase) {
         this.completeUploadSessionUseCase = completeUploadSessionUseCase;
         this.createUploadSessionUseCase = createUploadSessionUseCase;
         this.uploadChunkUseCase = uploadChunkUseCase;
         this.abortUploadSessionUseCase = abortUploadSessionUseCase;
         this.createDownloadSessionUseCase = createDownloadSessionUseCase;
-        // this.downloadChunkUseCase = downloadChunkUseCase;
+        this.downloadChunkUseCase = downloadChunkUseCase;
     }
 
-    @GetMapping("{fileId}/download-session/chunks/{chunkIndex}")
+    @GetMapping(path = "{fileId}/download-session/chunks/{chunkIndex}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<StreamingResponseBody> streamFile(
             @PathVariable UUID fileId,
             @PathVariable Long chunkIndex) {
 
-        InputStream inputStream = null;
-        // downloadChunkUseCase
-        // .execute(new DownloadChunkInput(fileId, chunkIndex))
-        // .inputStream();
+        InputStream inputStream = downloadChunkUseCase
+                .execute(new DownloadChunkInput(fileId, chunkIndex))
+                .inputStream();
 
         StreamingResponseBody responseBody = outputStream -> {
             byte[] buffer = new byte[8192];
