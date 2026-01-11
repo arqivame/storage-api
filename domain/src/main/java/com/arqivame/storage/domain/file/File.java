@@ -101,6 +101,11 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         else if (size < 0)
             handler.append(ValidationError.with("File size must be a non-negative value."));
 
+        if (Objects.isNull(checksum))
+            handler.append(ValidationError.with("File checksum cannot be null."));
+        else
+            checksum.validate(handler);
+
         if (Objects.isNull(status))
             handler.append(ValidationError.with("File status cannot be null."));
 
