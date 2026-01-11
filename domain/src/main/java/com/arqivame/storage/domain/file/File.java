@@ -83,7 +83,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 id,
                 checksum,
                 size,
-                FileStatus.UPLOADING,
+                FileStatus.NEW,
                 Optional.empty(),
                 Optional.empty(),
                 new LinkedList<>());
@@ -101,6 +101,9 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         else if (size < 0)
             handler.append(ValidationError.with("File size must be a non-negative value."));
 
+        if (Objects.isNull(status))
+            handler.append(ValidationError.with("File status cannot be null."));
+
     }
 
     @Override
@@ -115,6 +118,26 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
 
+        if (FileStatus.UPLOADING.equals(this.status))
+            throw InvalidStateException.with(
+                    File.class,
+                    Error.with("File is already uploading."));
+
+        if (FileStatus.UPLOAD_COMPLETED.equals(this.status))
+            throw InvalidStateException.with(
+                    File.class,
+                    Error.with("Cannot open upload session for a file that has completed upload."));
+
+        if (FileStatus.PROCESSING.equals(this.status))
+            throw InvalidStateException.with(
+                    File.class,
+                    Error.with("Cannot open upload session for a file that is processing."));
+
+        if (FileStatus.AVAILABLE.equals(this.status))
+            throw InvalidStateException.with(
+                    File.class,
+                    Error.with("Cannot open upload session for an available file."));
+
         final Boolean hasActiveUploadSession = uploadSession.isPresent();
 
         if (hasActiveUploadSession)
@@ -128,6 +151,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
                 maxChunksAtSameTime);
 
         uploadSession = Optional.of(session);
+        this.status = FileStatus.UPLOADING;
 
         events.add(FileUploadSessionOpenedEvent.create(this));
 
@@ -141,6 +165,11 @@ public class File extends AggregateRoot<FileID> implements EventSource {
             final Long lastChunkSize,
             final Long maxBytesPerSecondTransferRatePerChunk,
             final Integer maxChunksAtSameTime) {
+
+        if (!FileStatus.AVAILABLE.equals(this.status))
+            throw InvalidStateException.with(
+                    File.class,
+                    Error.with("Cannot open download session for a file that is not available."));
 
         final Boolean hasActiveUploadSession = downloadSession.isPresent();
 
@@ -164,8 +193,13 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File completeUploadSession() {
 
+        if (!FileStatus.UPLOADING.equals(this.status))
+            throw InvalidStateException.with(File.class, Error.with("File is not in uploading status."));
+
         if (uploadSession.isEmpty())
             throw InvalidStateException.with(File.class, Error.with("No active upload session to complete."));
+
+        this.status = FileStatus.UPLOAD_COMPLETED;
 
         events.add(FileUploadSessionCompletedEvent.create(this));
 
@@ -174,8 +208,13 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File abortUploadSession() {
 
+        if (!FileStatus.UPLOADING.equals(this.status))
+            throw InvalidStateException.with(File.class, Error.with("File is not in uploading status."));
+
         if (uploadSession.isEmpty())
-            return this;
+            throw InvalidStateException.with(File.class, Error.with("No active upload session to abort."));
+
+        this.status = FileStatus.UPLOAD_ABORTED;
 
         events.add(FileUploadSessionAbortedEvent.create(this));
         return closeUploadSession();
@@ -186,6 +225,10 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         if (FileStatus.AVAILABLE.equals(this.status))
             return this;
 
+        if (!FileStatus.PROCESSING.equals(this.status))
+            throw InvalidStateException.with(File.class,
+                    Error.with("Only files in processing status can be marked as available."));
+
         this.status = FileStatus.AVAILABLE;
         events.add(FileBecameAvailableEvent.create(this));
         return closeUploadSession();
@@ -194,11 +237,11 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File markAsFailed() {
 
-        if (FileStatus.AVAILABLE.equals(this.status))
-            throw InvalidStateException.with(File.class, Error.with("Cannot mark an available file as failed."));
-
         if (FileStatus.FAILED.equals(this.status))
             return this;
+
+        if (FileStatus.AVAILABLE.equals(this.status))
+            throw InvalidStateException.with(File.class, Error.with("Cannot mark an available file as failed."));
 
         this.status = FileStatus.FAILED;
         // events.add(FileBecameFailedEvent.create(this));
