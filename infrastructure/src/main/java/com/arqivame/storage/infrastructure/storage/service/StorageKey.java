@@ -1,9 +1,8 @@
-package com.arqivame.storage.domain.file.service;
+package com.arqivame.storage.infrastructure.storage.service;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import com.arqivame.storage.domain.Identifier;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 
@@ -21,18 +20,8 @@ public final class StorageKey {
         this.segments = segments;
     }
 
-    public static StorageKey create(final String segmentPrefix, final Identifier<?> identifier) {
-
-        final String[] segments = new String[] {
-                segmentPrefix,
-                identifier.getStringValue()
-        };
-
-        return new StorageKey(segments);
-    }
-
-    public StorageKey subKey(final String segmentPrefix, final Identifier<?> identifier) {
-        return subKey(segmentPrefix, identifier.getStringValue());
+    public static StorageKey create(final String... subSegments) {
+        return new StorageKey(subSegments);
     }
 
     public StorageKey subKey(final String... subSegments) {

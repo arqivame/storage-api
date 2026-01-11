@@ -8,50 +8,69 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 
-import com.arqivame.storage.application.service.file.ChunkCleanerService;
-import com.arqivame.storage.application.service.file.FinalizeFileProcessingService;
+import com.arqivame.storage.application.service.file.FinalizerFileProcessingService;
+import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionAbortedMessage;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionClosedMessage;
 import com.arqivame.storage.infrastructure.file.model.FileUploadSessionCompletedMessage;
+import com.arqivame.storage.infrastructure.file.service.FileAssembler;
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionAbortedConsumer;
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionClosedConsumer;
 import com.arqivame.storage.infrastructure.messaging.consumer.rabbitmq.file.FileUploadSessionCompletedConsumer;
 import com.arqivame.storage.infrastructure.messaging.producer.MessageProducer;
+import com.arqivame.storage.infrastructure.storage.service.ChunkStorageCleaner;
 
 @Configuration
 public class MessageConsumerConfig {
+
+    private final FileGateway fileGateway;
+    private final FileAssembler fileAssembler;
+    private final FinalizerFileProcessingService finalizerFileProcessingService;
+    private final ChunkStorageCleaner chunkStorageCleaner;
+
+    public MessageConsumerConfig(
+            final FileGateway fileGateway,
+            final FileAssembler fileAssembler,
+            final FinalizerFileProcessingService finalizerFileProcessingService,
+            final ChunkStorageCleaner chunkStorageCleaner) {
+        this.fileGateway = fileGateway;
+        this.fileAssembler = fileAssembler;
+        this.finalizerFileProcessingService = finalizerFileProcessingService;
+        this.chunkStorageCleaner = chunkStorageCleaner;
+    }
 
     @Bean
     Consumer<Message<FileUploadSessionCompletedMessage>> fileUploadSessionCompletedConsumer(
             @Value("${application.messaging.consumer.file-upload-session-completed-event.max-attempts}") final Long maxAttempts,
             @Qualifier("fileUploadSessionCompletedEventError") final MessageProducer<FileUploadSessionCompletedMessage> errorMessageProducer,
-            final FinalizeFileProcessingService finalizeFileProcessingService) {
+            final FinalizerFileProcessingService finalizeFileProcessingService) {
+
         return new FileUploadSessionCompletedConsumer(
                 maxAttempts,
                 errorMessageProducer,
+                fileGateway,
+                fileAssembler,
                 finalizeFileProcessingService);
     }
 
     @Bean
     Consumer<Message<FileUploadSessionClosedMessage>> fileUploadSessionClosedConsumer(
             @Value("${application.messaging.consumer.file-upload-session-closed-event.max-attempts}") final Long maxAttempts,
-            @Qualifier("fileUploadSessionClosedEventError") final MessageProducer<FileUploadSessionClosedMessage> errorMessageProducer,
-            final ChunkCleanerService chunkCleanerService) {
+            @Qualifier("fileUploadSessionClosedEventError") final MessageProducer<FileUploadSessionClosedMessage> errorMessageProducer) {
         return new FileUploadSessionClosedConsumer(
                 maxAttempts,
                 errorMessageProducer,
-                chunkCleanerService);
+                chunkStorageCleaner);
     }
 
     @Bean
     Consumer<Message<FileUploadSessionAbortedMessage>> fileUploadSessionAbortedConsumer(
             @Value("${application.messaging.consumer.file-upload-session-aborted-event.max-attempts}") final Long maxAttempts,
-            @Qualifier("fileUploadSessionAbortedEventError") final MessageProducer<FileUploadSessionAbortedMessage> errorMessageProducer,
-            final ChunkCleanerService chunkCleanerService) {
+            @Qualifier("fileUploadSessionAbortedEventError") final MessageProducer<FileUploadSessionAbortedMessage> errorMessageProducer) {
         return new FileUploadSessionAbortedConsumer(
                 maxAttempts,
                 errorMessageProducer,
-                chunkCleanerService);
+                chunkStorageCleaner);
     }
 
 }

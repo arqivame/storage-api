@@ -15,8 +15,8 @@ import com.arqivame.storage.domain.file.File;
 
 public class FileUploadSessionAbortedEvent extends Event<FileUploadSessionAbortedEvent.Data> {
 
-    private static final String ENTITY = "file";
-    private static final String ACTION = "upload-session-aborted";
+    private static final String ENTITY = "file:upload-session";
+    private static final String ACTION = "aborted";
     private static final String VERSION = "0.0.1";
 
     private static final FileUploadSessionAbortedEvent DEFAULT_INSTANCE = new FileUploadSessionAbortedEvent();

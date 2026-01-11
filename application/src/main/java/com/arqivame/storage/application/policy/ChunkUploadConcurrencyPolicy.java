@@ -1,4 +1,4 @@
-package com.arqivame.storage.domain.file.policy;
+package com.arqivame.storage.application.policy;
 
 import com.arqivame.storage.domain.file.Session;
 

@@ -1,6 +1,8 @@
 package com.arqivame.storage.domain.file;
 
-public record Checksum(String value, Algorithm algorithm) {
+import com.arqivame.storage.domain.ValueObject;
+
+public record Checksum(String value, Algorithm algorithm) implements ValueObject {
 
     public static Checksum from(final String value, final Algorithm algorithm) {
         return new Checksum(value, algorithm);
@@ -9,11 +11,6 @@ public record Checksum(String value, Algorithm algorithm) {
     public Boolean equals(final Checksum other) {
         return this.value.equals(other.value) && this.algorithm == other.algorithm;
     }
-
-    // TODO: implementation to calculate checksum
-    // public static Checksum of(final byte[] value, final Algorithm algorithm) {
-    // return new Checksum(new String(value), algorithm);
-    // }
 
     public enum Algorithm {
         MD5,

@@ -32,10 +32,10 @@ public class FileCreatedEvent extends Event<FileCreatedEvent.Data> {
         super(EventMetadata.create(ENTITY, ACTION, VERSION, occurredAt, relatedEntities), data);
     }
 
-    public record Data(UUID fileId, String storageKey) implements Serializable {
+    public record Data(UUID fileId) implements Serializable {
 
         public static Data of(final File file) {
-            return new Data(file.getId().getValue(), file.getStorageKey().getFullKey());
+            return new Data(file.getId().getValue());
         }
 
     }

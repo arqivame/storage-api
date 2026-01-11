@@ -1,22 +1,24 @@
-package com.arqivame.storage.infrastructure.file.service;
+package com.arqivame.storage.infrastructure.storage.service.filesystem;
 
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.bounded;
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.digestible;
 import static com.arqivame.storage.infrastructure.commons.InputStreamUtils.throttled;
 
 import java.io.InputStream;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.util.Objects;
 
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.Checksum.Algorithm;
-import com.arqivame.storage.domain.file.service.StorageKey;
-import com.arqivame.storage.domain.file.service.StorageService;
 import com.arqivame.storage.infrastructure.commons.FileSystemUtils;
 import com.arqivame.storage.infrastructure.commons.MessageDigestUtils;
 import com.arqivame.storage.infrastructure.commons.StringUtils;
+import com.arqivame.storage.infrastructure.storage.service.StorageKey;
+import com.arqivame.storage.infrastructure.storage.service.StorageService;
 
 public class FileSystemStorageService implements StorageService {
 
@@ -59,6 +61,26 @@ public class FileSystemStorageService implements StorageService {
                 digest);
 
         return new Checksum(StringUtils.toHexString(digest.digest()), checksumAlgorithm);
+
+    }
+
+    @Override
+    public InputStream read(
+            final StorageKey key,
+            final Long offsetInBytes,
+            final Long sizeInBytes,
+            final Long bytesPerSecondsReadRate) {
+
+        final String fullKey = key.getFullKey();
+        final Path storageLocation = rootLocation.resolve(fullKey);
+
+        try {
+            final FileChannel channel = FileSystemUtils.openChannel(storageLocation, StandardOpenOption.READ);
+            final InputStream inputStream = FileSystemUtils.read(channel, offsetInBytes);
+            return throttled(bounded(inputStream, sizeInBytes), bytesPerSecondsReadRate);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read input stream", e);
+        }
 
     }
 

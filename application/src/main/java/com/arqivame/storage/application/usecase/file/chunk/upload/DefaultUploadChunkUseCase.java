@@ -3,17 +3,17 @@ package com.arqivame.storage.application.usecase.file.chunk.upload;
 import java.io.InputStream;
 import java.util.Objects;
 
+import com.arqivame.storage.application.exception.ChunkIntegrityViolationException;
+import com.arqivame.storage.application.exception.MaxConcurrentChunkWritesReachedException;
+import com.arqivame.storage.application.port.ChunkWriter;
 import com.arqivame.storage.application.port.ConcurrencyTracker;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
-import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
 import com.arqivame.storage.domain.file.Session;
-import com.arqivame.storage.domain.file.service.StorageKey;
-import com.arqivame.storage.domain.file.service.StorageWriter;
 
 public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
@@ -21,16 +21,16 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
     private final FileGateway fileGateway;
 
-    private final StorageWriter storageWriter;
+    private final ChunkWriter chunkWriter;
 
     private final ConcurrencyTracker concurrencyTracker;
 
     public DefaultUploadChunkUseCase(
             final FileGateway fileGateway,
-            final StorageWriter storageWriter,
+            final ChunkWriter chunkWriter,
             final ConcurrencyTracker concurrencyTracker) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
-        this.storageWriter = Objects.requireNonNull(storageWriter);
+        this.chunkWriter = Objects.requireNonNull(chunkWriter);
         this.concurrencyTracker = Objects.requireNonNull(concurrencyTracker);
     }
 
@@ -53,17 +53,16 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
 
         try {
 
-            final StorageKey chunkStorageKey = file.getStorageKey().subKey("upload", "chunks", chunkIndex.toString());
-
-            final Checksum writeResult = storageWriter.write(
-                    chunkStorageKey,
+            final Checksum writeResult = chunkWriter.writeChunk(
+                    fileId,
+                    chunkIndex,
                     chunkData,
                     chunkSize,
                     uploadSession.maxBytesPerSecondTransferRatePerChunk(),
                     checksumValue.algorithm());
 
             if (!writeResult.equals(checksumValue))
-                throw InvalidArgumentException.with(Error.with("Checksum mismatch for chunk index: " + chunkIndex));
+                throw ChunkIntegrityViolationException.create();
 
         } finally {
             concurrencyTracker.decrement(fileId, CONCURRENCY_TAG_UPLOAD);

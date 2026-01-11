@@ -3,6 +3,7 @@ package com.arqivame.storage.infrastructure.commons;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
@@ -45,6 +46,15 @@ public final class FileSystemUtils {
 
     }
 
+    public static InputStream read(final FileChannel channel, Long offset) {
+        try {
+            channel.position(offset);
+            return Channels.newInputStream(channel);
+        } catch (IOException e) {
+            throw InternalErrorException.with("Failed to read file.", e);
+        }
+    }
+
     public static void delete(final Path filePath) {
         try {
 
@@ -67,7 +77,7 @@ public final class FileSystemUtils {
         }
     }
 
-    public static FileChannel opeChannel(final Path path, final StandardOpenOption... options) {
+    public static FileChannel openChannel(final Path path, final StandardOpenOption... options) {
         try {
             return FileChannel.open(path, options);
         } catch (IOException e) {

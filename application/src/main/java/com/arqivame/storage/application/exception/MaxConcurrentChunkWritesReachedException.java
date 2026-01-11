@@ -1,9 +1,9 @@
-package com.arqivame.storage.domain.exception;
+package com.arqivame.storage.application.exception;
 
 import java.util.List;
 import java.util.Objects;
 
-public class MaxConcurrentChunkWritesReachedException extends SilentDomainException {
+public class MaxConcurrentChunkWritesReachedException extends SilentApplicationException {
 
     private static final String MESSAGE = "Maximum concurrent chunk writes reached [%d]";
     private static final String ERROR = MESSAGE
@@ -12,7 +12,7 @@ public class MaxConcurrentChunkWritesReachedException extends SilentDomainExcept
     private MaxConcurrentChunkWritesReachedException(final Integer maxConcurrentWrites) {
         super(
                 MESSAGE.formatted(Objects.requireNonNull(maxConcurrentWrites)),
-                List.of(Error.with(ERROR.formatted(Objects.requireNonNull(maxConcurrentWrites)))));
+                List.of(ApplicationException.Error.with(ERROR.formatted(Objects.requireNonNull(maxConcurrentWrites)))));
     }
 
     public static MaxConcurrentChunkWritesReachedException create(final Integer maxConcurrentWrites) {

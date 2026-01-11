@@ -1,11 +1,11 @@
-package com.arqivame.storage.domain.file.service;
+package com.arqivame.storage.application.service.file;
 
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 
-public final class ChunkCalculatorService {
+public final class ChunkPartitioningService {
 
-    private ChunkCalculatorService() {
+    private ChunkPartitioningService() {
     }
 
     public static ChunkCalculationResult calculate(final Long maxAllowedChunkSize, final Long fileSize) {
