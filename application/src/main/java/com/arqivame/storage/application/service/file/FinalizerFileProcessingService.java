@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import com.arqivame.storage.domain.event.EventDispatcher;
+import com.arqivame.storage.domain.exception.NotFoundException;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
 import com.arqivame.storage.domain.file.FileID;
@@ -26,13 +27,12 @@ public class FinalizerFileProcessingService {
 
         final File file = fileGateway
                 .findById(FileID.of(fileId))
-                .orElseThrow(); // TODO exception
+                .orElseThrow(() -> NotFoundException.create(File.class, FileID.of(fileId)));
 
-        if (isSuccess) {
+        if (isSuccess)
             file.markAsAvailable();
-        } else {
-            // file.markAsFailed(); //TODO implementar
-        }
+        else
+            file.markAsFailed();
 
         eventDispatcher.notify(fileGateway.update(file));
 
