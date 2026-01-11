@@ -11,8 +11,10 @@ import com.arqivame.storage.domain.event.EventSource;
 import com.arqivame.storage.domain.exception.InvalidStateException;
 import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
 import com.arqivame.storage.domain.exception.DomainException.Error;
+import com.arqivame.storage.domain.exception.DownloadSessionAlreadyOpenException;
 import com.arqivame.storage.domain.file.event.FileBecameAvailableEvent;
 import com.arqivame.storage.domain.file.event.FileCreatedEvent;
+import com.arqivame.storage.domain.file.event.FileDownloadSessionOpenedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionAbortedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionClosedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionCompletedEvent;
@@ -128,6 +130,33 @@ public class File extends AggregateRoot<FileID> implements EventSource {
         uploadSession = Optional.of(session);
 
         events.add(FileUploadSessionOpenedEvent.create(this));
+
+        return this;
+
+    }
+
+    public File openDownloadSession(
+            final Integer totalChunks,
+            final Long chunkSize,
+            final Long lastChunkSize,
+            final Long maxBytesPerSecondTransferRatePerChunk,
+            final Integer maxChunksAtSameTime) {
+
+        final Boolean hasActiveUploadSession = downloadSession.isPresent();
+
+        if (hasActiveUploadSession)
+            throw DownloadSessionAlreadyOpenException.create();
+
+        final Session session = Session.create(
+                totalChunks,
+                chunkSize,
+                lastChunkSize,
+                maxBytesPerSecondTransferRatePerChunk,
+                maxChunksAtSameTime);
+
+        downloadSession = Optional.of(session);
+
+        events.add(FileDownloadSessionOpenedEvent.create(this));
 
         return this;
 

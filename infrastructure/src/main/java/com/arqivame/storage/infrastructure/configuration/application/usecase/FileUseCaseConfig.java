@@ -9,6 +9,8 @@ import com.arqivame.storage.application.port.ChunkWriter;
 import com.arqivame.storage.application.port.ConcurrencyTracker;
 import com.arqivame.storage.application.usecase.file.chunk.upload.DefaultUploadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
+import com.arqivame.storage.application.usecase.file.session.download.create.CreateDownloadSessionUseCase;
+import com.arqivame.storage.application.usecase.file.session.download.create.DefaultCreateDownloadSessionUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.DefaultAbortUploadSessionUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.complete.CompleteUploadSessionUseCase;
@@ -48,7 +50,7 @@ public class FileUseCaseConfig {
     CreateUploadSessionUseCase createUploadSessionUseCase() {
         return new DefaultCreateUploadSessionUseCase(
                 eventDispatcher,
-                1024L * 1024L * 250L, // 20 MB
+                1024L * 1024L * 25L, // 25 MB
                 fileGateway);
     }
 
@@ -65,6 +67,14 @@ public class FileUseCaseConfig {
     @Bean
     UploadChunkUseCase uploadChunkUseCase() {
         return new DefaultUploadChunkUseCase(fileGateway, chunkWriter, concurrencyTracker);
+    }
+
+    @Bean
+    CreateDownloadSessionUseCase createDownloadSessionUseCase() {
+        return new DefaultCreateDownloadSessionUseCase(
+                eventDispatcher,
+                1024L * 1024L * 50L, // 50 MB
+                fileGateway);
     }
 
 }

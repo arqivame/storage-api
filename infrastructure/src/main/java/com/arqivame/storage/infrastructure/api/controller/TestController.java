@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-// import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkInput;
-// import com.arqivame.storage.application.usecase.file.chunk.download.DownloadChunkUseCase;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkInput;
 import com.arqivame.storage.application.usecase.file.chunk.upload.UploadChunkUseCase;
+import com.arqivame.storage.application.usecase.file.session.download.create.CreateDownloadSessionInput;
+import com.arqivame.storage.application.usecase.file.session.download.create.CreateDownloadSessionOutput;
+import com.arqivame.storage.application.usecase.file.session.download.create.CreateDownloadSessionUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionInput;
 import com.arqivame.storage.application.usecase.file.session.upload.abort.AbortUploadSessionUseCase;
 import com.arqivame.storage.application.usecase.file.session.upload.complete.CompleteUploadSessionInput;
@@ -39,17 +40,21 @@ public class TestController {
     private final CreateUploadSessionUseCase createUploadSessionUseCase;
     private final UploadChunkUseCase uploadChunkUseCase;
     private final AbortUploadSessionUseCase abortUploadSessionUseCase;
+
+    private final CreateDownloadSessionUseCase createDownloadSessionUseCase;
     // private final DownloadChunkUseCase downloadChunkUseCase;
 
     public TestController(
             CompleteUploadSessionUseCase completeUploadSessionUseCase,
             CreateUploadSessionUseCase createUploadSessionUseCase,
             UploadChunkUseCase uploadChunkUseCase,
-            AbortUploadSessionUseCase abortUploadSessionUseCase) {
+            AbortUploadSessionUseCase abortUploadSessionUseCase,
+            CreateDownloadSessionUseCase createDownloadSessionUseCase) {
         this.completeUploadSessionUseCase = completeUploadSessionUseCase;
         this.createUploadSessionUseCase = createUploadSessionUseCase;
         this.uploadChunkUseCase = uploadChunkUseCase;
         this.abortUploadSessionUseCase = abortUploadSessionUseCase;
+        this.createDownloadSessionUseCase = createDownloadSessionUseCase;
         // this.downloadChunkUseCase = downloadChunkUseCase;
     }
 
@@ -60,8 +65,8 @@ public class TestController {
 
         InputStream inputStream = null;
         // downloadChunkUseCase
-        //         .execute(new DownloadChunkInput(fileId, chunkIndex))
-        //         .inputStream();
+        // .execute(new DownloadChunkInput(fileId, chunkIndex))
+        // .inputStream();
 
         StreamingResponseBody responseBody = outputStream -> {
             byte[] buffer = new byte[8192];
@@ -74,6 +79,12 @@ public class TestController {
 
         return ResponseEntity.ok()
                 .body(responseBody);
+    }
+
+    @PostMapping(path = "download-session")
+    public ResponseEntity<CreateDownloadSessionOutput> createDownloadSession(
+            @RequestBody CreateDownloadSessionInput input) {
+        return ResponseEntity.ok(createDownloadSessionUseCase.execute(input));
     }
 
     @PutMapping(value = "{fileId}/upload-session/chunks/{chunkIndex}", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
