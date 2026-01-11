@@ -15,8 +15,8 @@ import com.arqivame.storage.domain.file.File;
 
 public class FileUploadSessionCompletedEvent extends Event<FileUploadSessionCompletedEvent.Data> {
 
-    private static final String ENTITY = "file";
-    private static final String ACTION = "upload-session-completed";
+    private static final String ENTITY = "file:upload-session";
+    private static final String ACTION = "completed";
     private static final String VERSION = "0.0.1";
 
     private static final FileUploadSessionCompletedEvent DEFAULT_INSTANCE = new FileUploadSessionCompletedEvent();
