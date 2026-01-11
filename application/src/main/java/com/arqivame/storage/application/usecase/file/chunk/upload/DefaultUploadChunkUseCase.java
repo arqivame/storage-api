@@ -3,11 +3,12 @@ package com.arqivame.storage.application.usecase.file.chunk.upload;
 import java.io.InputStream;
 import java.util.Objects;
 
+import com.arqivame.storage.application.exception.ChunkIntegrityViolationException;
+import com.arqivame.storage.application.exception.MaxConcurrentChunkWritesReachedException;
 import com.arqivame.storage.application.port.ChunkWriter;
 import com.arqivame.storage.application.port.ConcurrencyTracker;
 import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.exception.InvalidArgumentException;
-import com.arqivame.storage.domain.exception.MaxConcurrentChunkWritesReachedException;
 import com.arqivame.storage.domain.file.Checksum;
 import com.arqivame.storage.domain.file.File;
 import com.arqivame.storage.domain.file.FileGateway;
@@ -61,7 +62,7 @@ public class DefaultUploadChunkUseCase extends UploadChunkUseCase {
                     checksumValue.algorithm());
 
             if (!writeResult.equals(checksumValue))
-                throw InvalidArgumentException.with(Error.with("Checksum mismatch for chunk index: " + chunkIndex));
+                throw ChunkIntegrityViolationException.create();
 
         } finally {
             concurrencyTracker.decrement(fileId, CONCURRENCY_TAG_UPLOAD);

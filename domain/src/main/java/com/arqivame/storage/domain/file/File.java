@@ -10,6 +10,7 @@ import com.arqivame.storage.domain.event.Event;
 import com.arqivame.storage.domain.event.EventSource;
 import com.arqivame.storage.domain.exception.InvalidStateException;
 import com.arqivame.storage.domain.exception.UploadSessionAlreadyOpenException;
+import com.arqivame.storage.domain.exception.DomainException.Error;
 import com.arqivame.storage.domain.file.event.FileBecameAvailableEvent;
 import com.arqivame.storage.domain.file.event.FileCreatedEvent;
 import com.arqivame.storage.domain.file.event.FileUploadSessionAbortedEvent;
@@ -135,7 +136,7 @@ public class File extends AggregateRoot<FileID> implements EventSource {
     public File completeUploadSession() {
 
         if (uploadSession.isEmpty())
-            throw new IllegalStateException("No active upload session to complete.");
+            throw InvalidStateException.with(File.class, Error.with("No active upload session to complete."));
 
         events.add(FileUploadSessionCompletedEvent.create(this));
 
@@ -153,12 +154,27 @@ public class File extends AggregateRoot<FileID> implements EventSource {
 
     public File markAsAvailable() {
 
-        if (this.status == FileStatus.AVAILABLE)
+        if (FileStatus.AVAILABLE.equals(this.status))
             return this;
 
         this.status = FileStatus.AVAILABLE;
         events.add(FileBecameAvailableEvent.create(this));
         return closeUploadSession();
+
+    }
+
+    public File markAsFailed() {
+
+        if (FileStatus.AVAILABLE.equals(this.status))
+            throw InvalidStateException.with(File.class, Error.with("Cannot mark an available file as failed."));
+
+        if (FileStatus.FAILED.equals(this.status))
+            return this;
+
+        this.status = FileStatus.FAILED;
+        // events.add(FileBecameFailedEvent.create(this));
+        return closeUploadSession();
+
     }
 
     private File closeUploadSession() {

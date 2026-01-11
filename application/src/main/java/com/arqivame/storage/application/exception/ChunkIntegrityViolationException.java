@@ -1,8 +1,8 @@
-package com.arqivame.storage.domain.exception;
+package com.arqivame.storage.application.exception;
 
 import java.util.List;
 
-public class ChunkIntegrityViolationException extends SilentDomainException {
+public class ChunkIntegrityViolationException extends SilentApplicationException {
 
     private static final String MESSAGE = "Chunk integrity violation detected.";
 
