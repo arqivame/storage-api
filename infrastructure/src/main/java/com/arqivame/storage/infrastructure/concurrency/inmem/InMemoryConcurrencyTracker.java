@@ -6,12 +6,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.arqivame.storage.application.port.ConcurrencyTracker;
 import com.arqivame.storage.domain.Identifier;
 
 @Component
+@ConditionalOnProperty(name = "application.vendor.concurrency-tracker", havingValue = "inmemory")
 public class InMemoryConcurrencyTracker implements ConcurrencyTracker {
 
     private final ConcurrentMap<Key, AtomicInteger> counters = new ConcurrentHashMap<>();

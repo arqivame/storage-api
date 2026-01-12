@@ -30,6 +30,8 @@ dependencies {
     implementation 'org.postgresql:postgresql:42.7.7'
     implementation 'com.h2database:h2:2.4.240'
 
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 

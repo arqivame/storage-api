@@ -22,14 +22,11 @@ import com.arqivame.storage.application.usecase.file.session.upload.create.Creat
 import com.arqivame.storage.application.usecase.file.session.upload.create.DefaultCreateUploadSessionUseCase;
 import com.arqivame.storage.domain.event.EventDispatcher;
 import com.arqivame.storage.domain.file.FileGateway;
-import com.arqivame.storage.infrastructure.storage.service.StorageService;
 
 @Configuration
 public class FileUseCaseConfig {
 
     private final FileGateway fileGateway;
-
-    private final StorageService storageService;
 
     private final ConcurrencyTracker concurrencyTracker;
     private final ChunkWriter chunkWriter;
@@ -39,13 +36,11 @@ public class FileUseCaseConfig {
 
     public FileUseCaseConfig(
             final FileGateway fileGateway,
-            final StorageService storageService,
             final ConcurrencyTracker concurrencyTracker,
             final ChunkWriter chunkWriter,
             final ChunkReader chunkReader,
             final EventDispatcher eventDispatcher) {
         this.fileGateway = Objects.requireNonNull(fileGateway);
-        this.storageService = Objects.requireNonNull(storageService);
         this.concurrencyTracker = Objects.requireNonNull(concurrencyTracker);
         this.chunkWriter = Objects.requireNonNull(chunkWriter);
         this.chunkReader = Objects.requireNonNull(chunkReader);
