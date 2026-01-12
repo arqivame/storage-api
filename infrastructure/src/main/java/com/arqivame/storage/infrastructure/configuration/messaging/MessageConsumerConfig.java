@@ -25,17 +25,14 @@ public class MessageConsumerConfig {
 
     private final FileGateway fileGateway;
     private final FileAssembler fileAssembler;
-    private final FinalizerFileProcessingService finalizerFileProcessingService;
     private final ChunkStorageCleaner chunkStorageCleaner;
 
     public MessageConsumerConfig(
             final FileGateway fileGateway,
             final FileAssembler fileAssembler,
-            final FinalizerFileProcessingService finalizerFileProcessingService,
             final ChunkStorageCleaner chunkStorageCleaner) {
         this.fileGateway = fileGateway;
         this.fileAssembler = fileAssembler;
-        this.finalizerFileProcessingService = finalizerFileProcessingService;
         this.chunkStorageCleaner = chunkStorageCleaner;
     }
 

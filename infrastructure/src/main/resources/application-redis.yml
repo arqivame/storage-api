@@ -1,0 +1,12 @@
+spring:
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  concurrency:
+    tracker:
+      ttl-seconds: ${REDIS_CONCURRENCY_TRACKER_TTL_SECONDS:60}

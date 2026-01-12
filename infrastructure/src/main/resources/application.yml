@@ -6,6 +6,7 @@ spring:
       - spring-cloud
       - ${application.vendor.database}
       - ${application.vendor.messaging}
+      - ${application.vendor.concurrency-tracker}
 
 application:
   name: storage-api
@@ -15,14 +16,15 @@ application:
   vendor:
     database: ${STORAGE_VENDOR_DATABASE:postgres}
     messaging: ${STORAGE_VENDOR_MESSAGING:rabbitmq}
+    concurrency-tracker: ${STORAGE_VENDOR_CONCURRENCY_TRACKER:redis}
   messaging:
     consumer:
       file-upload-session-completed-event:
         concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_CONCURRENCY:1}
-        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_MAX_ATTEMPTS:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_COMPLETED_MAX_ATTEMPTS:5}
       file-upload-session-closed-event:
         concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CLOSED_CONCURRENCY:1}
-        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CLOSED_MAX_ATTEMPTS:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_CLOSED_MAX_ATTEMPTS:5}
       file-upload-session-aborted-event:
         concurrency: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_CONCURRENCY:1}
-        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_MAX_ATTEMPTS:1}
+        max-attempts: ${STORAGE_CONSUMER_FILE_UPLOAD_SESSION_ABORTED_MAX_ATTEMPTS:5}
